@@ -280,6 +280,11 @@ class OpenFMRIAnalyzer(object):
 			intnorm_file = output_file.replace('.nii.gz','_intnorm.nii.gz')
 			shutil.copy(os.path.join(directory,'preproc','intnorm','mapflow','_intnorm0','bold_dtype_mcf_mask_intnorm.nii.gz'),intnorm_file)
 			shutil.copy(os.path.join(directory,'preproc','maskfunc2','mapflow','_maskfunc20','bold_dtype_mcf_mask.nii.gz'),output_file)
+			cmd = "eog {}".format(os.path.join(directory,'preproc','realign','mapflow','_realign0','bold_dtype_mcf.nii.gz_rot.png'))
+			subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+			cmd = "eog {}".format(os.path.join(directory,'preproc','realign','mapflow','_realign0','bold_dtype_mcf.nii.gz_trans.png'))
+			subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+
 		else:
 			mcflt = fsl.MCFLIRT(in_file=input_file, out_file=output_file, save_plots=True)
 			result = mcflt.run()
@@ -312,6 +317,7 @@ class OpenFMRIAnalyzer(object):
 					os.mkdir(merge_dir)
 					merge_file = os.path.join (merge_dir, 'bold.nii.gz'.format(task))
 					mcf_merge_file = merge_file.replace('.nii.gz','_mcf.nii.gz')
+					intnorm_merge_file = mcf_merge_file.replace('.nii.gz','_intnorm.nii.gz')
 
 
 				if not os.path.isfile(merge_file):
@@ -327,27 +333,28 @@ class OpenFMRIAnalyzer(object):
 					self.__motion_correct_file__(merge_file, mcf_merge_file,subject,merge_dir)
 
 				func_lengths = [nibabel.load(x).shape[3] for x in bold_files]
-				split_dir = os.path.join(subject.functional_dir(), 'temp_split') + '/'
+				for output_merge_file in [mcf_merge_file,intnorm_merge_file]:
+					split_dir = os.path.join(subject.functional_dir(), 'temp_split') + '/'
+					if(not os.path.isfile(split_dir)):
+						os.mkdir(split_dir)
+						splitter = fsl.Split(in_file       = output_merge_file,
+								     out_base_name = split_dir,
+                                                                     dimension     = 't')
+						result = splitter.run()
+					
+						split_dcms = sorted(result.outputs.out_files)
+						idx = 0
 
-				if(not os.path.isfile(split_dir)):
-					os.mkdir(split_dir)
-					splitter = fsl.Split(in_file=mcf_merge_file,out_base_name=split_dir,dimension='t')
-					result = splitter.run()
-				
-					split_dcms = sorted(result.outputs.out_files)
-					idx = 0
+						for mcf_file, run_length in zip(mcf_files, func_lengths):
+							input_files = split_dcms[idx:idx+run_length]
+							merge = fsl.Merge(in_files = input_files,
+								  	  dimension='t',
+									  output_type = 'NIFTI_GZ',
+									  merged_file = mcf_file)
+							merge.run()
+							idx += run_length
 
-					for mcf_file, run_length in zip(mcf_files, func_lengths):
-						input_files = split_dcms[idx:idx+run_length]
-						merge = fsl.Merge(in_files = input_files,
-							  dimension='t',
-							  output_type = 'NIFTI_GZ',
-							  merged_file = mcf_file
-							)
-						merge.run()
-						idx += run_length
-
-				shutil.rmtree(split_dir)
+					shutil.rmtree(split_dir)
 			else:	
 				# No need to merge the files..
 				for directory in sorted(directories):
