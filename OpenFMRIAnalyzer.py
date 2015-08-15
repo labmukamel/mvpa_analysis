@@ -105,7 +105,7 @@ class OpenFMRIAnalyzer(object):
 				convert_warp.run()
 				apply_warp = fsl.preprocess.ApplyWarp(ref_file   = standard_image,
 								      in_file    = mid_file,
-								      field_file = example_func2standard_warp
+								      field_file = example_func2standard_warp,
 								      out_file   = os.path.join(reg_dir,'example_func2standard.nii.gz' ))
 				apply_warp.run()	
 
