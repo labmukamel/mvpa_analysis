@@ -306,7 +306,7 @@ class OpenFMRIAnalyzer(object):
 					print ">>> Motion Correction has already been performed"
 					continue
 
-				merge_dir = os.path.join(subject.functional_dir(), '{}_merged'.format(task))
+				merge_dir = os.path.join(subject.functional_dir(), 'temp_{}_merged'.format(task))
 				if not os.path.isfile(merge_dir):
 					
 					os.mkdir(merge_dir)
