@@ -165,6 +165,8 @@ class SubjectDir(object):
 	def functional_dir(self):
 		return os.path.join(self._path,self._subdirs['functional'])	
 
+	def subcode(self):
+		return self._subject_code
 def test():
 	pass
 
