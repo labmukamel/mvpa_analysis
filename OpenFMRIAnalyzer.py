@@ -73,19 +73,22 @@ class OpenFMRIAnalyzer(object):
 				bold_length = nibabel.load(bold_file).shape[3]
 				reg_dir = os.path.join(directory,'reg')
 				if os.path.isfile(os.path.join(reg_dir, 'highres2example_func.mat')):
+					print "registration for {} already performed".format(directory)
 					continue
-
+				print "working on {}".format(directory)
 				if not os.path.isdir(reg_dir):
 					os.mkdir(reg_dir)
-				log_file = os.path.join(reg_dir,'log_reg')
-				html_log_file =os.path.join(reg_dir,'log_reg.html') 
+				else:
+					shutil.rmtree(reg_dir)
+				log_file = os.path.join(directory,'log_reg')
 				mid_file =  os.path.join(directory,'mid_func.nii.gz')
 				extract_mid = fsl.ExtractROI(in_file	= bold_file, 
 							     roi_file	= mid_file,
 							     t_min	= bold_length/2,
 							     t_size	= 1)
 				result = extract_mid.run()
-				cmd = 'mainfeatreg -F 6.00 -d {} -l {} -i {} -r {} -h {} -w BBR -x 90 > /dev/null'.format(directory,log_file,mid_file,html_log_file, brain_image)
+#				cmd = 'mainfeatreg -F 6.00 -d {} -l {} -i {} -h {} -w BBR -x 90 > /dev/null'.format(directory,log_file,mid_file, brain_image)
+				cmd = 'mainfeatreg -F 6.00 -d {} -l {} -i {} -h {} -w 6 -x 90  > /dev/null'.format(directory,log_file,mid_file, brain_image)
 				subprocess.call(cmd,shell=True)
 
 
