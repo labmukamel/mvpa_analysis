@@ -90,6 +90,24 @@ class OpenFMRIAnalyzer(object):
 #				cmd = 'mainfeatreg -F 6.00 -d {} -l {} -i {} -h {} -w BBR -x 90 > /dev/null'.format(directory,log_file,mid_file, brain_image)
 				cmd = 'mainfeatreg -F 6.00 -d {} -l {} -i {} -h {} -w 6 -x 90  > /dev/null'.format(directory,log_file,mid_file, brain_image)
 				subprocess.call(cmd,shell=True)
+				anat_reg_dir = os.path.join(subject.anatomical_dir(),'reg')
+				highres2mni_mat = os.path.join(anat_reg_dir,'highres2standard.mat')
+				highres2mni_warp = os.path.join(anat_reg_dir,'highres2standard_warp.nii.gz')
+				example_func2highres_mat = os.path.join(reg_dir,'example_func2highres.mat')
+				example_func2standard_warp = os.path.join(reg_dir,'example_func2standard_warp.nii.gz')
+	
+				standard_image = fsl.Info.standard_image('MNI152_T1_2mm_brain.nii.gz') 
+				convert_warp = fsl.ConvertWarp(reference = standard_image,
+							       pre_mat   = example_func2highres_mat,
+							       warp1     = highres2standard_warp,
+							       out_file  = example_func2standard_warp)
+				print convert_warp.cmdline
+				convert_warp.run()
+				apply_warp = fsl.preprocess.ApplyWarp(ref_file   = standard_image,
+								      in_file    = mid_file,
+								      field_file = example_func2standard_warp
+								      out_file   = os.path.join(reg_dir,'example_func2standard.nii.gz' ))
+				apply_warp.run()	
 
 
 	def anatomical_registration(self, subject):
@@ -115,8 +133,7 @@ class OpenFMRIAnalyzer(object):
 					  interp	 ='trilinear')
 			flirt.run()
 	
-		#TODO: do this better: don't use restore hard-coded
-		anatomical_head = os.path.join(subject.anatomical_dir(),'highres001_restore.nii.gz')
+		anatomical_head = os.path.join(subject.anatomical_dir(),'highres001.nii.gz')
 		output_fielf_coeff = os.path.join(reg_dir, 'highres2standard_warp.nii.gz')
 		output_jacobian = os.path.join(reg_dir, 'highres2highres_jac')
 		standard_head = fsl.Info.standard_image('MNI152_T1_2mm.nii.gz')
