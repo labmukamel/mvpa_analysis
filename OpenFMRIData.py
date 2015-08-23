@@ -6,7 +6,14 @@ import json
 from glob import glob
 from SubjectDir import SubjectDir
 
+"""
+	Reads the fmri data in openfmri format
+
+	Parameters
+		data_dir:
+"""
 class OpenFMRIData(object):
+
 	def __init__(self, data_dir, raw_data_dir, behavioural_dir, study_name):
 		self._data_dir                = data_dir
 		self._raw_data_dir            = os.path.join(raw_data_dir, study_name)
@@ -21,20 +28,6 @@ class OpenFMRIData(object):
 		self.load_task_order()
 		self.load_behavioural_mapping()
 
-	def load_behavioural_mapping(self):
-		with open(os.path.join(self._behavioural_dir, 'task_mapping.txt'), 'r') as fh:
-			task_data = fh.read().splitlines()
-
-		self._task_mapping = dict()
-
-		task_pairs = [(task.split('\t')[0], task.split('\t')[1]) for task in task_data]
-		for task_name, task_sequence in task_pairs:
-			self._task_mapping[task_name] = task_sequence
-
-	def load_task_order(self):
-		with open(os.path.join(self._study_dir, 'task_order.txt'), 'r') as fh:
-			self._task_order = fh.read().splitlines()
-
 	def load_subject_mapping(self):
 		if os.path.isfile(self._subject_mapping_file):
 			mapping_file = open(self._subject_mapping_file, 'r')
@@ -44,6 +37,20 @@ class OpenFMRIData(object):
 		else:
 			self._subject_mapping = dict()
 			self.__write_subject_mapping__()
+
+	def load_task_order(self):
+		with open(os.path.join(self._study_dir, 'task_order.txt.txt'), 'r') as fh:
+			self._task_order = fh.read().splitlines()
+
+	def load_behavioural_mapping(self):
+		with open(os.path.join(self._behavioural_dir, 'task_mapping.txt'), 'r') as fh:
+			task_data = fh.read().splitlines()
+
+		self._task_mapping = dict()
+
+		task_pairs = [(task.split('\t')[0], task.split('\t')[1]) for task in task_data]
+		for task_name, task_sequence in task_pairs:
+			self._task_mapping[task_name] = task_sequence
 
 	def mapping_json(self):
 		return self._subject_mapping
@@ -135,7 +142,7 @@ def test():
 	print "{:<40s}{}".format("mapping_json", o.mapping_json())
 	print "{:<40s}{}".format("__get_latest_subject_directory__", o.__get_latest_subject_directory__())
 
-	print "{:<40s}{}".format("task_order", o._task_order)
+	print "{:<40s}{}".format("task_order.txt", o._task_order)
 
 if __name__ == "__main__":
 	test()
