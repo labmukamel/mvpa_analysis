@@ -208,13 +208,15 @@ class SubjectDir(object):
 def test():
 	task_order = [];
 	task_mapping = [];
-	with open("/home/lior/PycharmProjects/mvpa_analysis/task_order.txt", 'r') as fh:
+	
+	with open("task_order.txt", 'r') as fh:
 			task_order = fh.read().splitlines()
 
 	#with open('task_mapping.txt', 'r') as fh:
 	#		task_mapping = fh.read().splitlines()
-
-	s = SubjectDir('001','openfmri','/media/lior/DAE86CF0E86CCBF7/Data/RM_lab_Roee_BaOf_20150618_1100','',task_order)
+	
+	# Will read from raw_data folder and create all the folders under openfmri/
+	s = SubjectDir('001','openfmri','raw_data','',task_order)
 
 if __name__ == "__main__":
 	test()
