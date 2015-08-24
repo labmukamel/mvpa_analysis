@@ -5,15 +5,18 @@ import os
 from OpenFMRIData import OpenFMRIData
 from OpenFMRIAnalyzer import OpenFMRIAnalyzer
 
-subname    	= sys.argv[1]
-data_dir   	= os.environ.get('DATA_DIR') or '/home/user/data'
-study_name 	= os.environ.get('STUDY_NAME') or 'LP'
+#subname    	= sys.argv[1]
+
+subject_names = ['MOKA', 'HiAn']
+data_dir   	= os.environ.get('DATA_DIR') or '/home/daniel/mvpa_analysis/data/'
+study_name 	= os.environ.get('STUDY_NAME') or 'AV'
 
 raw_dir 	= os.path.join(data_dir,'raw')
 behavioural_dir = os.path.join(data_dir,'behavioural')
 
-op = OpenFMRIData(data_dir, raw_dir, behavioural_dir,study_name)
-subject_dir = op.subject_dir(subname=subname)
-analyzer = OpenFMRIAnalyzer(op,[subject_dir.subcode()])
-analyzer.analyze(mc_merge=True)
+op = OpenFMRIData(data_dir, raw_dir, '' ,study_name)
+for name in subject_names:
+    subject_dir = op.create_subject_dir(name)
+    #analyzer = OpenFMRIAnalyzer(op,[subject_dir.subcode()])
+    #analyzer.analyze(mc_merge=True)
 

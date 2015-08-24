@@ -18,6 +18,9 @@ class SubjectDir(object):
 			task_order.txt: List from to task_order.txt.txt
 			task_mapping: List from task_mapping.txt
 		"""
+
+		print("Subject {}".format(subject_code))
+
 		self._path 		= path
 		self._raw_path 		= raw_path
 		self._behavioural_path 	= behavioural_path
@@ -35,6 +38,7 @@ class SubjectDir(object):
 				raise Exception("Cannot create new subject directory from subcode")
 			else:
 				# Preparing the subject subdirectories
+				print("Preparing the subject subdirectories")
 				self.__create_subject_dirtree__()
 
 		self.__load_dirtree__()
@@ -44,13 +48,15 @@ class SubjectDir(object):
 		Creates a dictionary of <task,functional directory of the task>
 		Ex: _dir_tree['functional']['task001'][['BOLD/task001_run001'],['BOLD/task001_run002']]
 		"""
+		print("Loading openfmri directory structure")
 		self._dir_tree = {'functional': dict(),
-                                  'model': dict()}
+								  'model': dict()}
 
 		# Reads all the sub directories of the functional directory that are in format taskxxx_runxxx
 		# Saves to the dictionary where the key is the task and the value is the directory path
+
 		task_pairs =  [(directory.split('/')[-1].split('_')[0], directory)
-					   		for directory in glob(os.path.join(self.functional_dir(), 'task[0-9][0-9][0-9]_run[0-9][0-9][0-9]'))]
+							for directory in glob(os.path.join(self.functional_dir(), 'task[0-9][0-9][0-9]_run[0-9][0-9][0-9]'))]
 
 		for task, run_dir in task_pairs:
 			if task in self._dir_tree['functional']:
@@ -84,9 +90,9 @@ class SubjectDir(object):
 		onset_dirs = ["model{:0>3d}/onsets".format(directory) for directory in range(1, num_models)]
 
 		dir_tree = {
-			    self._path: 		self._subdirs.values(), # In the main path we create functional, anatomical, model, masks folders
-			    self.functional_dir(): 	self._task_order, # Create the  task order folders inside the functional directory - BOLD/taskxxx_runxxx
-			    self.model_dir():		[os.path.join(onset_dir, task) for onset_dir in onset_dirs for task in self._task_order], # Create modelxxx/onsets/taskxxx
+				self._path: 		self._subdirs.values(), # In the main path we create functional, anatomical, model, masks folders
+				self.functional_dir(): 	self._task_order, # Create the  task order folders inside the functional directory - BOLD/taskxxx_runxxx
+				self.model_dir():		[os.path.join(onset_dir, task) for onset_dir in onset_dirs for task in self._task_order], # Create modelxxx/onsets/taskxxx
 			   self.masks_dir():		['anatomy']+self._task_order # Create a different mask directory of each task and run Mask/anatomytaskxxx_runxxx
 			   }
 
@@ -142,10 +148,10 @@ class SubjectDir(object):
 
 	def __dcm_convert__(self, source_directory, target_directory, target_filename, rename_prefix, erase=False):
 		cmd = "dcm2nii -o {} {} > /dev/null".format(target_directory, source_directory)
-                os.system(cmd)
+		os.system(cmd)
 
-                nii_file = glob("{}/{}*".format(target_directory, rename_prefix))[0]
-                os.rename(nii_file, os.path.join(target_directory, '{}.nii.gz'.format(target_filename)))
+		nii_file = glob("{}/{}*".format(target_directory, rename_prefix))[0]
+		os.rename(nii_file, os.path.join(target_directory, '{}.nii.gz'.format(target_filename)))
 
 		if erase:
 			for file_name in glob("{}/*".format(target_directory)):
@@ -155,13 +161,13 @@ class SubjectDir(object):
 	def __dcm_to_nii__(self, dummy=False):
 		"""
 		Converts the dicom files:
-		 	- MPRAGE directory ->  NIFTY in anatomical folder(anatomy/highres001.nii.gz)
+			- MPRAGE directory ->  NIFTY in anatomical folder(anatomy/highres001.nii.gz)
 			- ep2 directories ->  NIFTY in functional folder(bold/taskxxx_runxxx/bold.nii.gz)
 		"""
 		raw_anatomical = glob("{}/*MPRAGE*".format(self._raw_path))[0] # The anatomical directory in the raw data contains MPRAGE
 		raw_functional_dirs = sorted(glob("{}/*ep2*".format(self._raw_path))) # The functional directories in the raw data contains ep2
 
-		print "Converting DCM to NII"
+		print("Converting DCM to NII")
 
 		if dummy:
 			print "self.__dcm_convert__(raw_anatomical, self.anatomical_dir(), 'highres001', 'co', True)"
@@ -174,10 +180,11 @@ class SubjectDir(object):
 			# Matching the tasks(from task_order.txt.txt) to the functional directories of the raw data(ep2) and converting the dicom files to nifty
 			for raw_functional_directory, run_name in zip(raw_functional_dirs, self._task_order):
 				self.__dcm_convert__(raw_functional_directory, 
-						     os.path.join(self.functional_dir(), run_name),
-						     'bold',
-						     '',
-						     False)
+							 os.path.join(self.functional_dir(), run_name),
+							 'bold',
+							 '',
+							 False)
+		print("Finished Converting DCM to NII")
 
 	def path(self):
 		return self._path
@@ -206,8 +213,8 @@ class SubjectDir(object):
 	def subcode(self):
 		return self._subject_code
 def test():
-	task_order = [];
-	task_mapping = [];
+	task_order = []
+	task_mapping = []
 	
 	with open("task_order.txt", 'r') as fh:
 			task_order = fh.read().splitlines()

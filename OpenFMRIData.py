@@ -6,15 +6,19 @@ import json
 from glob import glob
 from SubjectDir import SubjectDir
 
-"""
-	Reads the fmri data in openfmri format
 
-	Parameters
-		data_dir:
-"""
 class OpenFMRIData(object):
 
 	def __init__(self, data_dir, raw_data_dir, behavioural_dir, study_name):
+		"""
+			Loads subject mapping, task order, task mapping files
+
+			Parameters
+				data_dir: Target openfmri directory
+				raw_data_dir: Root raw directory (Only the path to the raw directory (in raw/study_name/subxxx))
+				behavioural_dir:
+				study_name: The name of the study folder containing relevant subjects
+		"""
 		self._data_dir                = data_dir
 		self._raw_data_dir            = os.path.join(raw_data_dir, study_name)
 		self._behavioural_dir	      = os.path.join(behavioural_dir, study_name)
@@ -26,7 +30,7 @@ class OpenFMRIData(object):
 
 		self.load_subject_mapping()
 		self.load_task_order()
-		self.load_behavioural_mapping()
+		self.load_task_mapping()
 
 	def load_subject_mapping(self):
 		if os.path.isfile(self._subject_mapping_file):
@@ -39,11 +43,11 @@ class OpenFMRIData(object):
 			self.__write_subject_mapping__()
 
 	def load_task_order(self):
-		with open(os.path.join(self._study_dir, 'task_order.txt.txt'), 'r') as fh:
+		with open(os.path.join(self._study_dir, 'task_order.txt'), 'r') as fh:
 			self._task_order = fh.read().splitlines()
 
-	def load_behavioural_mapping(self):
-		with open(os.path.join(self._behavioural_dir, 'task_mapping.txt'), 'r') as fh:
+	def load_task_mapping(self):
+		with open(os.path.join(self._study_dir, 'task_mapping.txt'), 'r') as fh:
 			task_data = fh.read().splitlines()
 
 		self._task_mapping = dict()
@@ -72,20 +76,74 @@ class OpenFMRIData(object):
 
 		study_dirlist = glob("{}/{}*".format(self._study_dir, directory_prefix))
 
-		latest_dir_sequence = (max([int(x.replace("{}/{}".format(self._study_dir, directory_prefix), "")) for x in study_dirlist] + [0])+1)
+		# Takes the subject codes from the subjects in study directory
+		subject_codes =[]
+		for x in study_dirlist:
+			# Replace the directory name to get only the subject code
+			subject_codes.append(int(x.replace("{}/{}".format(self._study_dir, directory_prefix), "")))
+		# Getting the largest number
+		latest_dir_sequence = max(subject_codes + [0]) + 1
+
+		#latest_dir_sequence = (max([int(x.replace("{}/{}".format(self._study_dir, directory_prefix), "")) for x in study_dirlist] + [0])+1)
 
 		return latest_dir_sequence
 
 	def __write_subject_mapping__(self):
-		mapping_file = open(self._subject_mapping_file, 'w')
+		mapping_file = open(self._subject_mapping_file, 'w+')
 		json.dump(self._subject_mapping, mapping_file)
 		mapping_file.close()
 
 	def __subcode_to_dir_format__(self, code):
 		return os.path.join(self.study_dir(), "sub{:0>3d}".format(int(code)))
 
-	def subject_dir(self, **kwargs):
-		"""Expecting either subcode (i.e. 1), or subname (i.e. AzOr)"""
+	def create_subject_dir(self, subject_name):
+		"""
+			Creates the openfmri structure by creating SubjectDir
+
+			Parameters
+				subname = (string)
+			Returns:
+				SubjectDir Object
+		"""
+		behavioural_dir = None
+
+		# Gets the largest/latest subject code + 1 (from the study directory)
+		subject_code = self.__get_latest_subject_directory__()
+
+		# Adds the the new subject name to the subject_mapping dictionary
+		self._subject_mapping[subject_name] = subject_code
+
+		# Check whether subject raw directory exists before adding the mapping
+		raw_dirs = glob('{}/*{}*'.format(self.raw_study_dir(), subject_name))
+
+		if len(raw_dirs) == 0:
+			raise BaseException("No subject by the name of {}".format(subject_name))
+
+		raw_dir = raw_dirs[0]
+
+		# behavioural_dirs = glob('{}/*{}*'.format(self.behavioural_dir(), subject_name))
+		#
+		# if len(behavioural_dirs) == 0:
+		# 	raise BaseException("No behavioural data for subject {}".format(subject_name))
+		# behavioural_dir = behavioural_dirs[0]
+
+		# Saves the subject mapping to a file
+		self.__write_subject_mapping__()
+
+		return SubjectDir(subject_code, self.__subcode_to_dir_format__(subject_code), raw_dir, behavioural_dir, self._task_order, self._task_mapping)
+
+	def load_subject_dir(self, **kwargs):
+		"""
+			Creates or uses the openfmri structure by creating SubjectDir
+				- Creates the new directories only when given subname!
+				- Uses current structure when given subcode/subname and the subject_mapping file exists in the study dir
+
+			Parameters
+				subcode = (number) or subname = (string)
+				- Ex: subject_dir(subcode = 1) or subject_dir(subname = 'AzOr')
+			Returns:
+				SubjectDir Object
+		"""
 
 		subject_code 	= None
 		raw_dir      	= None
@@ -100,26 +158,13 @@ class OpenFMRIData(object):
 			if subject_name in self._subject_mapping:
 				subject_code = self._subject_mapping[subject_name]
 			else:
-				subject_code = self.__get_latest_subject_directory__()
+				# If the subject doesn't exist in the subject mapping then we create the structure
+				return self.create_subject_dir(self,subject_name)
 
-				self._subject_mapping[subject_name] = subject_code
-
-				# Check whether subject raw directory exists before adding the mapping
-				raw_dirs = glob('{}/*{}*'.format(self.raw_study_dir(), subject_name))
-
-				if len(raw_dirs) == 0:
-					raise BaseException("No subject by the name of {}".format(subject_name))
-
-				raw_dir = raw_dirs[0] 
-
-				behavioural_dirs = glob('{}/*{}*'.format(self.behavioural_dir(), subject_name))
-
-				if len(behavioural_dirs) == 0:
-					raise BaseException("No behavioural data for subject {}".format(subject_name))
-				behavioural_dir = behavioural_dirs[0] 
-
-				self.__write_subject_mapping__()
-
+		# Params-
+		#	1) subject_code, 2) data_dir/study_name/sub[subject_code], 3) data_dir/raw, 4) data_dir/behavioural,
+		# 	5) array of task_order.txt, 6) array of task_mapping.txt
+		# Returns- subjectdir object that contains the openfmri structure
 		return SubjectDir(subject_code, self.__subcode_to_dir_format__(subject_code), raw_dir, behavioural_dir, self._task_order, self._task_mapping)
 
 def test():
@@ -129,7 +174,7 @@ def test():
 	print "{:<40s}{}".format("study_dir", o.study_dir())
 	print "{:<40s}{}".format("raw_study_dir", o.raw_study_dir())
 	print "{:<40s}{}".format("behavioural_dir", o.behavioural_dir())
-	
+
 	subject_dir_by_name = o.subject_dir(subname='KeEl')
 	print "{:<40s}{}".format("subject(subname='KeEl').path()", subject_dir_by_name.path())
 	print "{:<40s}{}".format("subject(subname='KeEl').raw_path()", subject_dir_by_name.raw_path())
