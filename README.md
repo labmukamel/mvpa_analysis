@@ -60,7 +60,7 @@ If the path exists(we already created the openfmri structure) then we read it an
 ###### Holds SubjectDir and loads the subject mapping, task order and task mapping files to the memory
  
 ```python 
- SubjectDir(subject_code, path, raw_path, behavioural_path, task_order, task_mapping)
+ def SubjectDir(subject_code, path, raw_path, behavioural_path, task_order, task_mapping):
 ```
 
 Parameters
@@ -71,7 +71,7 @@ Parameters
 - study_name: The name of the study folder containing relevant subjects
 
 ```python
- create_subject_dir(subject_name)
+ def create_subject_dir(subject_name):
 ```
 
 Creates the openfmri structure by creating SubjectDir
@@ -85,7 +85,7 @@ Returns:
 - SubjectDir Object
 
 ```python
- load_subject_dir(**kwargs)
+ def load_subject_dir(**kwargs):
 ```
 
 Creates or uses the openfmri structure by creating SubjectDir
