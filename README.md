@@ -8,6 +8,14 @@
 
 **[OpenFMRI Structure](#openfmri-structure)**
 
+* [Before Creation](#BeforeCreation)
+* [After Creation](#AfterCreation)
+* [MetaData](#MetaData)
+
+    * [task_order.txt](#task_order)
+    * [task_mapping.txt](#task_mapping)
+    * [mapping_subject.json](#mapping_subject)
+
 **[Code Design](#CodeDesign)**
 
 * [SubjectDir](#SubjectDir)
@@ -22,10 +30,35 @@ Open the terminal and run
 
         git clone https://github.com/lshkiller/mvpa_analysis.git
 
+Notes:
 
+- You might run into problems with running FSL in pycharm. Add the following to pycharm.sh (In: [pycharm installation]/bin/pycharm.sh):
+
+        ./etc/fsl/5.0/fsl.sh
 
 ## OpenFMRI Structure
 ![OpenFMRI Structure](https://openfmri.org/system/files/dataorg_1.png)
+
+### Before Creation
+![Before OpenFMRI Structure](doc/BeforeOpenFMRI.png)
+### After Creation
+![Before OpenFMRI Structure](doc/AfterOpenFMRI.png)
+### Metadata
+
+#### Task Order File
+    task001_run001
+    task001_run002
+    task001_run003
+    task002_run001
+#### Task Mapping File
+    MVPA_run1	task001_run001
+    MVPA_run2	task001_run001
+    MVPA_run3	task001_run001
+    MVPA_run4	task001_run001
+    MVPA_run5	task002_run001
+#### Mapping Subject File
+    {"AzOr": 1}
+
 ## Code Design
 ### SubjectDir
  
