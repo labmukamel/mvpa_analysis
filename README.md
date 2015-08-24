@@ -65,7 +65,7 @@ Notes:
 ###### In charge of creating the openfmri structure and converting DICOM files to NIFTY
  
  ```python
-     SubjectDir(subject_code, path, raw_path, behavioural_path, task_order, task_mapping)
+     def SubjectDir(subject_code, path, raw_path, behavioural_path, task_order, task_mapping)"
  ```
  
 Parameters
@@ -93,7 +93,7 @@ If the path exists(we already created the openfmri structure) then we read it an
 ###### Holds SubjectDir and loads the subject mapping, task order and task mapping files to the memory
  
 ```python 
- def SubjectDir(subject_code, path, raw_path, behavioural_path, task_order, task_mapping):
+ def OpenFMRIData(data_dir, raw_data_dir, behavioural_dir, study_name):
 ```
 
 Parameters
