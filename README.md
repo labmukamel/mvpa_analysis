@@ -28,7 +28,7 @@
 2. Download MVPA Analysis
 Open the terminal and run
 
-        git clone https://github.com/lshkiller/mvpa_analysis.git
+        git clone https://github.com/liorshkiller/mvpa_analysis.git
 
 Notes:
 
