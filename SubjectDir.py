@@ -15,7 +15,7 @@ class SubjectDir(object):
 			path: Output path in openfmri format
 			raw_path: Contains the dicom folders
 			behavioural_path:
-			task_order.txt: List from to task_order.txt.txt
+			task_order.txt: List from to task_order.txt
 			task_mapping: List from task_mapping.txt
 		"""
 
@@ -32,7 +32,7 @@ class SubjectDir(object):
 				 'anatomical': 	'anatomy',
 				 'model':	'model',
 				 'masks':	'masks'}
-
+        # Only enters when exists an  openfmri path
 		if(not os.path.isdir(self._path)):
 			if raw_path is None:
 				raise Exception("Cannot create new subject directory from subcode")

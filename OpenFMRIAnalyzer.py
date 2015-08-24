@@ -21,7 +21,7 @@ class OpenFMRIAnalyzer(object):
 	def __load_subjects__(self, subjects):
 		if len(subjects) > 0:
 			for subject in subjects:
-				self._subjects_list.append(self._fmri_data.subject_dir(subcode=subject))
+				self._subjects_list.append(self._fmri_data.load_subject_dir(subcode=subject))
 		else:
 			pass # load all subjects
 
@@ -50,7 +50,7 @@ class OpenFMRIAnalyzer(object):
 	def generate_functional_gm_masks(self, subject):
 		print ">>> Creating functional gray matter masks"
 		mask_name = 'grey.nii.gz'
-        	gm_mask = os.path.join(subject.masks_dir(),'anatomy',mask_name)
+		gm_mask = os.path.join(subject.masks_dir(),'anatomy',mask_name)
 		for task, directories in subject.dir_tree('functional').iteritems():
 			for directory in directories:
 				run_name = directory.split('/')[-1]
@@ -83,9 +83,9 @@ class OpenFMRIAnalyzer(object):
 				log_file = os.path.join(directory,'log_reg')
 				mid_file =  os.path.join(directory,'mid_func.nii.gz')
 				extract_mid = fsl.ExtractROI(in_file	= bold_file, 
-							     roi_file	= mid_file,
-							     t_min	= bold_length/2,
-							     t_size	= 1)
+								 roi_file	= mid_file,
+								 t_min	= bold_length/2,
+								 t_size	= 1)
 				result = extract_mid.run()
 #				cmd = 'mainfeatreg -F 6.00 -d {} -l {} -i {} -h {} -w BBR -x 90 > /dev/null'.format(directory,log_file,mid_file, brain_image)
 				cmd = 'mainfeatreg -F 6.00 -d {} -l {} -i {} -h {} -w 6 -x 90  > /dev/null'.format(directory,log_file,mid_file, brain_image)
@@ -98,15 +98,15 @@ class OpenFMRIAnalyzer(object):
 	
 				standard_image = fsl.Info.standard_image('MNI152_T1_2mm_brain.nii.gz') 
 				convert_warp = fsl.ConvertWarp(reference = standard_image,
-							       pre_mat   = example_func2highres_mat,
-							       warp1     = highres2standard_warp,
-							       out_file  = example_func2standard_warp)
+								   pre_mat   = example_func2highres_mat,
+								   warp1     = highres2standard_warp,
+								   out_file  = example_func2standard_warp)
 				print convert_warp.cmdline
 				convert_warp.run()
 				apply_warp = fsl.preprocess.ApplyWarp(ref_file   = standard_image,
-								      in_file    = mid_file,
-								      field_file = example_func2standard_warp,
-								      out_file   = os.path.join(reg_dir,'example_func2standard.nii.gz' ))
+									  in_file    = mid_file,
+									  field_file = example_func2standard_warp,
+									  out_file   = os.path.join(reg_dir,'example_func2standard.nii.gz' ))
 				apply_warp.run()	
 
 
@@ -151,7 +151,7 @@ class OpenFMRIAnalyzer(object):
 			fnirt.run()
 			cmd = 'fslview {} {} -t 0.5 '.format(standard_image,out_file)
 			pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-			       shell=True, preexec_fn=os.setsid)
+				   shell=True, preexec_fn=os.setsid)
 
 	def functional_segmentation(self,subject):
 		print ">>> Functional Segmentation"
@@ -185,12 +185,12 @@ class OpenFMRIAnalyzer(object):
 
 	def segmentation(self, subject):
 		print ">>> Segmentation"
-        	gm_mask_name = os.path.join(subject.masks_dir(),'anatomy','grey.nii.gz')
-        	if os.path.isfile(gm_mask_name):
+		gm_mask_name = os.path.join(subject.masks_dir(),'anatomy','grey.nii.gz')
+		if os.path.isfile(gm_mask_name):
 			return
-        	
+
 		brain_image = os.path.join(subject.anatomical_dir(),"highres001_brain.nii.gz")
-        	fast = fsl.FAST(in_files=brain_image, out_basename=os.path.join(subject.masks_dir(),'anatomy','seg'), img_type=1, number_classes=3, hyper=0.4,segments=True)
+		fast = fsl.FAST(in_files=brain_image, out_basename=os.path.join(subject.masks_dir(),'anatomy','seg'), img_type=1, number_classes=3, hyper=0.4,segments=True)
 
 		try:
 			result = fast.run()
@@ -203,7 +203,7 @@ class OpenFMRIAnalyzer(object):
 		if False:
 			cmd = 'fslview {} {} -l Red -t 0.1 -b 0,0.1'.format(brain_image,gm_pve_file)
 			pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-				       shell=True, preexec_fn=os.setsid)
+					   shell=True, preexec_fn=os.setsid)
 			thr = float(raw_input("Insert a GM thershold for the mask: default is 0\n")) or 0.0
 			os.killpg(pro.pid,signal.SIGTERM)
 			gen_mask = fsl.utils.ImageMaths(in_file=gm_pve_file,op_string = '-thr {} -bin'.format(thr), out_file=gm_mask_name)
@@ -239,7 +239,8 @@ class OpenFMRIAnalyzer(object):
 			os.raname(anat_filename,anatfilename.replace('.nii.gz','_pre_restore.nii.gz'))
 			shutil.copy(fast.outputs.image_restored,anat_filename)
 			return anat_filename
-		except:
+		except Exception as ex:
+			print ex
 			return restore_file
 
 	def extract_brain(self, subject):
@@ -258,11 +259,11 @@ class OpenFMRIAnalyzer(object):
 		g = 0.1
 
 		bet = fsl.BET(in_file=input_image, 
-			      out_file=brain_image,
-			      mask=True, 
-			      robust=True, 
-			      frac=f, 
-			      vertical_gradient=g)
+				  out_file=brain_image,
+				  mask=True,
+				  robust=True,
+				  frac=f,
+				  vertical_gradient=g)
 
 		result = bet.run()
 
@@ -280,7 +281,7 @@ class OpenFMRIAnalyzer(object):
 		os.rename(os.path.join(subject.anatomical_dir(),'highres001_brain_mask.nii.gz'),os.path.join(subject.masks_dir(),'anatomy','brain.nii.gz'))
 
 
-	def __motion_correct_file__(self, input_file, output_file,subject,directory,use_example_pp=True):
+	def __motion_correct_file__(self, input_file, output_file,subject,directory,use_example_pp=False):
 		# Check whether motion correction has already been completed
 		if os.path.isfile(output_file):
 			return
@@ -355,8 +356,8 @@ class OpenFMRIAnalyzer(object):
 					if(not os.path.isfile(split_dir)):
 						os.mkdir(split_dir)
 						splitter = fsl.Split(in_file       = output_merge_file,
-								     out_base_name = split_dir,
-                                                                     dimension     = 't')
+									 out_base_name = split_dir,
+																	 dimension     = 't')
 						result = splitter.run()
 					
 						split_dcms = sorted(result.outputs.out_files)
@@ -365,7 +366,7 @@ class OpenFMRIAnalyzer(object):
 						for mcf_file, run_length in zip(mcf_files, func_lengths):
 							input_files = split_dcms[idx:idx+run_length]
 							merge = fsl.Merge(in_files = input_files,
-								  	  dimension='t',
+									  dimension='t',
 									  output_type = 'NIFTI_GZ',
 									  merged_file = mcf_file)
 							merge.run()
