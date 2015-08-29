@@ -3,18 +3,18 @@
 
 **[Installation Guide](#installation-guide)**
 
-  1. [Nipype Installation](#nipypeinstall)
-  2. [Download MVPA Analysis](#downloadmvpaanalysis)
+  1. [Nipype Installation](#nipype-installation)
+  2. [Download MVPA Analysis](#download-mvpa-analysis)
 
 **[OpenFMRI Structure](#openfmri-structure)**
 
-* [Before Creation](#BeforeCreation)
-* [After Creation](#AfterCreation)
+* [Before Creation](#Before-Creation)
+* [After Creation](#After-Creation)
 * [MetaData](#MetaData)
 
-    * [task_order.txt](#task_order)
-    * [task_mapping.txt](#task_mapping)
-    * [mapping_subject.json](#mapping_subject)
+    * [task_order.txt](#Task-Order-File)
+    * [task_mapping.txt](#task-mapping-file)
+    * [mapping_subject.json](#Mapping-Subject-File)
 
 **[Code Design](#CodeDesign)**
 
@@ -23,7 +23,7 @@
 
 ## Installation Guide
 
-1. Follow nipype [installation guide](http://miykael.github.io/nipype-beginner-s-guide/installation.html) or [this one](http://nipy.org/nipype/users/install.html).
+1. Nipype installation: Follow nipype [installation guide](http://miykael.github.io/nipype-beginner-s-guide/installation.html) or [this one](http://nipy.org/nipype/users/install.html).
 
 2. Download MVPA Analysis
 Open the terminal and run
