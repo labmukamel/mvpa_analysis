@@ -10,7 +10,7 @@
 
 * [Before Creation](#before-creation)
 * [After Creation](#after-creation)
-* [MetaData](#MetaData)
+* [MetaData](#metadata)
 
     * [task_order.txt](#task-order-file)
     * [task_mapping.txt](#task-mapping-file)
@@ -18,8 +18,8 @@
 
 **[Code Design](#CodeDesign)**
 
-* [SubjectDir](#SubjectDir)
-* [OpenFMRIData](#OpenFMRIData)
+* [SubjectDir](#subjectdir)
+* [OpenFMRIData](#openfmridata)
 
 ## Installation Guide
 
