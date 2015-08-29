@@ -8,13 +8,13 @@
 
 **[OpenFMRI Structure](#openfmri-structure)**
 
-* [Before Creation](#Before-Creation)
-* [After Creation](#After-Creation)
+* [Before Creation](#before-creation)
+* [After Creation](#after-creation)
 * [MetaData](#MetaData)
 
-    * [task_order.txt](#Task-Order-File)
+    * [task_order.txt](#task-order-file)
     * [task_mapping.txt](#task-mapping-file)
-    * [mapping_subject.json](#Mapping-Subject-File)
+    * [mapping_subject.json](#mapping-subject-file)
 
 **[Code Design](#CodeDesign)**
 
