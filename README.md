@@ -16,7 +16,7 @@
     * [task_mapping.txt](#task-mapping-file)
     * [mapping_subject.json](#mapping-subject-file)
 
-**[Code Design](#CodeDesign)**
+**[Code Design](#code-design)**
 
 * [SubjectDir](#subjectdir)
 * [OpenFMRIData](#openfmridata)
