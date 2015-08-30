@@ -2,6 +2,7 @@
 
 import os
 import json
+import re
 
 from glob import glob
 from SubjectDir import SubjectDir
@@ -55,6 +56,16 @@ class OpenFMRIData(object):
 		task_pairs = [(task.split('\t')[0], task.split('\t')[1]) for task in task_data]
 		for task_name, task_sequence in task_pairs:
 			self._task_mapping[task_name] = task_sequence
+
+
+	def get_subject_names(self):
+		'''
+		Extracting the subject names from the dicom raw data directories. In our lab the format is like: "RM_lab_.*_(.*)_[0-9]{8}_[0-9]{4}"
+		Example: RM_lab_Roee_KrNo_20150618_1320
+		:return:Array of subject names based on the directory of the raw data
+		'''
+		rgx = re.compile("RM_lab_.*_(.*)_[0-9]{8}_[0-9]{4}")
+		return [rgx.search(dirname).group(1) for dirname in os.listdir(self._raw_data_dir)]
 
 	def mapping_json(self):
 		return self._subject_mapping
@@ -159,7 +170,7 @@ class OpenFMRIData(object):
 				subject_code = self._subject_mapping[subject_name]
 			else:
 				# If the subject doesn't exist in the subject mapping then we create the structure
-				return self.create_subject_dir(self,subject_name)
+				return self.create_subject_dir(subject_name)
 
 		# Params-
 		#	1) subject_code, 2) data_dir/study_name/sub[subject_code], 3) data_dir/raw, 4) data_dir/behavioural,
