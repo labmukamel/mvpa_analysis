@@ -16,7 +16,7 @@ behavioural_dir = os.path.join(data_dir,'behavioural')
 op = OpenFMRIData(data_dir, raw_dir, '' ,study_name)
 
 #subject_names = ['MoCa'] # Specific subject names
-subject_names = op.get_subject_names(raw_dir) # All subjects
+subject_names = op.get_subject_names() # All subjects
 
 for name in subject_names:
     subject_dir = op.load_subject_dir(subname=name)
