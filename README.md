@@ -162,11 +162,12 @@ Parameters
 - fmri_data: OpenFMRIData object
 - subjects: Can either be a list of names or a list of SubjectDir
 
+
+###### Brain Extraction
+
 ```python
  def extract_brain(self, subject, overwrite = False, f=0.5, g=-0.1):
 ```
-
-Brain Extraction
 
  - Creates 'mask/anatomy/brain.nii.gz'
  - Creates 'anatomy/highres001_bias.nii.gz', 'highres001_brain.nii.gz'
@@ -178,11 +179,11 @@ Parameters
  - f = fractional intensity threshold
  - g = vertical gradient in fractional intensity threshold (-1, 1)
 
+###### Bias field estimation
+
 ```python
  def estimate_bias_field(subject, overwrite = False):
 ```
-
-Bias field estimation
 
  - Before running FAST an image of a head should first be brain-extracted, using BET. The resulting brain-only image can then be fed into FAST.
 
