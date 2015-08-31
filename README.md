@@ -21,6 +21,7 @@
 
 * [SubjectDir](#subjectdir)
 * [OpenFMRIData](#openfmridata)
+* [OpenFMRIAnalyzer](#openfmrianalyzer)
 
 ## Installation Guide
 
@@ -147,3 +148,43 @@ Parameters
 Returns:
 
 - SubjectDir Object
+
+### OpenFMRIAnalyzer
+
+###### Handles all the FMRI analysis
+
+ ```python
+ def OpenFMRIAnalyzer(fmri_data, subjects):
+```
+
+Parameters
+
+- fmri_data: OpenFMRIData object
+- subjects: Can either be a list of names or a list of SubjectDir
+
+ ```python
+ def extract_brain(self, subject, overwrite = False, f=0.5, g=-0.1):
+```
+Brain Extraction
+    - Creates 'mask/anatomy/brain.nii.gz'
+    - Creates 'anatomy/highres001_bias.nii.gz', 'highres001_brain.nii.gz'
+
+Parameters
+    subject = Subject Dir object
+    overwrite = States whether or not to overwrite the image
+    f = fractional intensity threshold
+    g = vertical gradient in fractional intensity threshold (-1, 1)
+
+ ```python
+ def estimate_bias_field(subject, overwrite = False):
+```
+
+Bias field estimation
+ - Before running FAST an image of a head should first be brain-extracted, using BET. The resulting brain-only image can then be fed into FAST.
+
+Parameters
+    subject = Subject Dir object
+    overwrite = States whether or not to overwrite the image
+
+Returns:
+    Path to 'highres001.nii.gz' file

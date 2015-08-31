@@ -26,6 +26,8 @@ class OpenFMRIAnalyzer(object):
                     self._subjects_list.append(self._fmri_data.load_subject_dir(subcode=subject))
                 elif(type(subject) is SubjectDir):
                     self._subjects_list.append(subject)
+                else:
+                    raise BaseException("Invalid file type for {}".format(subject))
         else:
             pass # load all subjects
 
@@ -199,7 +201,6 @@ class OpenFMRIAnalyzer(object):
 
         gm_mask_name = os.path.join(subject.masks_dir(),'anatomy','grey.nii.gz')
         if os.path.isfile(gm_mask_name):
-            print ">>>> Skipped"
             return
 
         brain_image = os.path.join(subject.anatomical_dir(),"highres001_brain.nii.gz")
@@ -241,7 +242,6 @@ class OpenFMRIAnalyzer(object):
         print(">>> Bias field estimation")
 
         anat_filename = os.path.join(subject.anatomical_dir(), 'highres001_brain.nii.gz')
-
         #anat_filename = os.path.join(subject.anatomical_dir(), 'highres001.nii.gz')
         restore_file = os.path.join(subject.anatomical_dir(), 'highres001_restore.nii.gz')
 
@@ -298,8 +298,6 @@ class OpenFMRIAnalyzer(object):
 
         # Estimate bias field
         #input_image = self.estimate_bias_field(subject) # TODO - in http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FAST it says that The resulting brain-only image(from bet) can then be fed into FAST.
-
-
 
         bet = fsl.BET(in_file=input_image,
                   out_file=brain_image,

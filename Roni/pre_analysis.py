@@ -1,8 +1,8 @@
 #!/usr/bin/python
 import sys
 import os
-import re
 
+from OpenFMRIAnalyzer import OpenFMRIAnalyzer
 from OpenFMRIData import OpenFMRIData
 
 #subname    	= sys.argv[1]
@@ -12,8 +12,6 @@ study_name 	= os.environ.get('STUDY_NAME') or 'EPITest'
 
 raw_dir 	= os.path.join(data_dir,'raw')
 behavioural_dir = os.path.join(data_dir,'behavioural')
-
-
 
 #Specific for Roni
 def create_evs(subjectdir, onset_dirs,behavioural_path):
@@ -58,7 +56,6 @@ def create_evs(subjectdir, onset_dirs,behavioural_path):
                 for onset_dir in onset_dirs:
                     value.to_csv(os.path.join(subjectdir.model_dir(), onset_dir, task_sequence, condition_name), sep='\t',index=False,header=False)
 
-
 op = OpenFMRIData(data_dir, raw_dir,study_name)
 
 #subject_names = ['MoCa'] # Specific subject names
@@ -68,6 +65,6 @@ for name in subject_names:
     subject_dir = op.load_subject_dir(subname=name,create_behav_dict = {'func': create_evs, 'behav': os.path.join(behavioural_dir,study_name,name)})
     # if we want to create new data for analysis
     # subject_dir = op.create_subject_dir(name)
-    #analyzer = OpenFMRIAnalyzer(op,[subject_dir.subcode()])
-    #analyzer.analyze(mc_merge=True)
+    analyzer = OpenFMRIAnalyzer(op,[subject_dir])
+    analyzer.analyze(mc_merge=True)
 
