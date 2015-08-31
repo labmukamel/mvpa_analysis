@@ -34,8 +34,13 @@ class SubjectDir(object):
                          'masks': 'masks',
                          'behav': 'behav'}
 
-        # Only enters when exists an openfmri path
-        if (not os.path.isdir(self._path) or not self.__isValid__(self._path)):
+        isValid = self.__isValid__(self._path)
+
+        if (not os.path.isdir(self._path) or not isValid):
+
+            if os.path.isdir(self._path) and not isValid:
+                print("Openfmri directory exists but is not valid")
+
             if raw_path is None:
                 raise Exception("Cannot create new subject directory from subcode")
             else:
@@ -48,15 +53,18 @@ class SubjectDir(object):
     def __isValid__(self, path):
 
         # Must have all the relevant folders(BOLD,anatomy,model,masks,behav)
-        if os.listdir(path) != self._subdirs.values():
+        if os.listdir(path).sort() != self._subdirs.values().sort():
+            print("Openfmri directory doesn't have all its subdirectories")
             return False
 
         # Has the anatomical file
         if not os.path.exists(self.anatomical_brain_nii()):
+            print("Openfmri directory doesn't have the anatomical nii")
             return False
 
         # Checks that there exists a bold file in each task directory in each functional directory
         if not all(os.path.exists(os.path.join(bold,'bold.nii.gz')) for bold in [os.path.join(self.functional_dir(), taskrun) for taskrun in self._task_order]):
+            print("Openfmri directory doesn't have all the bold nii files")
             return False
 
         return True
