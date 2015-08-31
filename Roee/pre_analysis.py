@@ -2,7 +2,7 @@
 import sys
 import os
 import re
-
+import OpenFMRIAnalyzer
 from OpenFMRIData import OpenFMRIData
 
 #subname    	= sys.argv[1]
@@ -21,6 +21,6 @@ for name in subject_names:
     subject_dir = op.create_subject_dir(name)
     # if we want to create new data for analysis
     # subject_dir = op.create_subject_dir(name)
-    #analyzer = OpenFMRIAnalyzer(op,[subject_dir.subcode()])
-    #analyzer.analyze(mc_merge=True)
+    analyzer = OpenFMRIAnalyzer(op,[subject_dir.subcode()])
+    analyzer.extract_brain(subject_dir)
 

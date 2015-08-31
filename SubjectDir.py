@@ -142,7 +142,7 @@ class SubjectDir(object):
                 if not os.path.isdir(os.path.join(path, directory)):
                     os.makedirs(os.path.join(path, directory))
 
-        self.__dcm_to_nii__(True)
+        self.__dcm_to_nii__()
 
         if(self._create_behav_dict != None and hasattr(self._create_behav_dict['func'], '__call__')):
             func = self._create_behav_dict['func']
