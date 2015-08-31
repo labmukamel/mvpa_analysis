@@ -15,6 +15,7 @@
     * [task_order.txt](#task-order-file)
     * [task_mapping.txt](#task-mapping-file)
     * [mapping_subject.json](#mapping-subject-file)
+    * [behavdata.txt](#behavioural-data)
 
 **[Code Design](#code-design)**
 
