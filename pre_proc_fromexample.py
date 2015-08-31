@@ -302,7 +302,7 @@ meanfunc3 = pe.MapNode(interface=fsl.ImageMaths(op_string='-Tmean',
                                                 suffix='_mean'),
                        iterfield=['in_file'],
                        name='meanfunc3')
-preproc.connect(mask_func2, 'out_file', meanfunc3, 'in_file')
+#preproc.connect(mask_func2, 'out_file', meanfunc3, 'in_file')
 
 """
 Strip the structural image and coregister the mean functional image to the

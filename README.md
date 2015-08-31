@@ -114,7 +114,7 @@ Parameters
 - study_name: The name of the study folder containing relevant subjects
 
 ```python
- def create_subject_dir(subject_name, create_behav_dict = None):
+ def create_subject_dir(subject_name, overwrite = False, create_behav_dict = None):
 ```
 
 Creates the openfmri structure by creating SubjectDir
@@ -122,6 +122,7 @@ Creates the openfmri structure by creating SubjectDir
 Parameters
 
 - subject_name = (string)
+- overwrite = States whether we overwrite existing directory
 - create_behav_dict = dictionary[2] {'func': function that creates the conditions of the models, 'behav': behavioural path}
 
 Returns:

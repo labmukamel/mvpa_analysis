@@ -102,7 +102,7 @@ class OpenFMRIData(object):
     def __subcode_to_dir_format__(self, code):
         return os.path.join(self.study_dir(), "sub{:0>3d}".format(int(code)))
 
-    def create_subject_dir(self, subject_name, create_behav_dict = None):
+    def create_subject_dir(self, subject_name, overwrite = False, create_behav_dict = None):
         """
             Creates the openfmri structure by creating SubjectDir
 
@@ -113,8 +113,11 @@ class OpenFMRIData(object):
                 SubjectDir Object
         """
 
-        # Gets the largest/latest subject code + 1 (from the study directory)
-        subject_code = self.__get_latest_subject_directory__()
+        if overwrite:
+            subject_code = self._subject_mapping[subject_name]
+        else:
+            # Gets the largest/latest subject code + 1 (from the study directory)
+            subject_code = self.__get_latest_subject_directory__()
 
         # Adds the the new subject name to the subject_mapping dictionary
         self._subject_mapping[subject_name] = subject_code

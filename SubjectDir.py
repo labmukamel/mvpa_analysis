@@ -58,7 +58,7 @@ class SubjectDir(object):
             return False
 
         # Has the anatomical file
-        if not os.path.exists(self.anatomical_brain_nii()):
+        if not os.path.exists(self.anatomical_nii()):
             print("Openfmri directory doesn't have the anatomical nii")
             return False
 
@@ -208,6 +208,9 @@ class SubjectDir(object):
 
     def anatomical_brain_nii(self):
         return os.path.join(self.anatomical_dir(), 'highres001_brain.nii.gz')
+
+    def anatomical_nii(self):
+        return os.path.join(self.anatomical_dir(), 'highres001.nii.gz')
 
     def model_dir(self):
         return os.path.join(self._path, self._subdirs['model'])
