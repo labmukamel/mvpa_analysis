@@ -58,14 +58,24 @@ Notes:
     MVPA_run5	task002_run001
 #### Mapping Subject File (mapping_subject.json)
     {"AzOr": 1}
+#### Behavioural data (behavdata.txt)
 
+    Onset	Rsponse	StimVar	Stimulus	ResponseTime
+    0	 1	 2	 incongruent	 1095	 
+    10	 1	 2	 incongruent	 988	 
+    20	 1	 1	 congruent	 591	 
+    30	 1	 1	 congruent	 499	 
+    40	 1	 2	 incongruent	 719	 
+    52	 1	 1	 congruent	 544	 
+    64	 1	 1	 congruent	 436	 
+    76	 1	 2	 incongruent	 470	 
 ## Code Design
 ### SubjectDir
  
 ###### In charge of creating the openfmri structure and converting DICOM files to NIFTY
  
  ```python
-     def SubjectDir(subject_code, path, raw_path, behavioural_path, task_order, task_mapping)"
+     def SubjectDir(subject_code, path, raw_path, task_order, task_mapping)"
  ```
  
 Parameters
