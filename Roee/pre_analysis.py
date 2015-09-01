@@ -1,4 +1,4 @@
-#!/usr/bin/python
+﻿#!/usr/bin/python
 import sys
 import os
 import re
@@ -22,6 +22,6 @@ for name in subject_names:
     # if we want to create new data for analysis
     # subject_dir = op.create_subject_dir(name)
     analyzer = OpenFMRIAnalyzer(op,[subject_dir])
-    analyzer.extract_brain(subject_dir)
-    analyzer.estimate_bias_field(subject_dir)
+    brain_image = analyzer.extract_brain(subject_dir)
+    analyzer.estimate_bias_field(subject_dir, brain_image)
 

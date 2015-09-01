@@ -77,7 +77,7 @@ Notes:
 ###### In charge of creating the openfmri structure and converting DICOM files to NIFTY
  
  ```python
-     def SubjectDir(subject_code, path, raw_path, task_order, task_mapping)"
+def SubjectDir(subject_code, path, raw_path, task_order, task_mapping)"
  ```
  
 Parameters
@@ -105,7 +105,7 @@ If the path exists(we already created the openfmri structure) then we read it an
 ###### Holds SubjectDir and loads the subject mapping, task order and task mapping files to the memory
  
 ```python 
- def OpenFMRIData(data_dir, raw_data_dir, study_name):
+def OpenFMRIData(data_dir, raw_data_dir, study_name):
 ```
 
 Parameters
@@ -115,7 +115,7 @@ Parameters
 - study_name: The name of the study folder containing relevant subjects
 
 ```python
- def create_subject_dir(subject_name, overwrite = False, create_behav_dict = None):
+def create_subject_dir(subject_name, overwrite = False, create_behav_dict = None):
 ```
 
 Creates the openfmri structure by creating SubjectDir
@@ -131,7 +131,7 @@ Returns:
 - SubjectDir Object
 
 ```python
- def load_subject_dir(**kwargs):
+def load_subject_dir(**kwargs):
 ```
 
 Creates or uses the openfmri structure by creating SubjectDir
@@ -154,7 +154,7 @@ Returns:
 ###### Handles all the FMRI analysis
 
 ```python
- def OpenFMRIAnalyzer(fmri_data, subjects):
+def OpenFMRIAnalyzer(fmri_data, subjects):
 ```
 
 Parameters
@@ -166,11 +166,13 @@ Parameters
 ###### Brain Extraction
 
 ```python
- def extract_brain(self, subject, overwrite = False, f=0.5, g=-0.1):
+def extract_brain(self, subject, overwrite = False, f=0.5, g=-0.1):
 ```
 
- - Creates 'mask/anatomy/brain.nii.gz'
- - Creates 'anatomy/highres001_bias.nii.gz', 'highres001_brain.nii.gz'
+Outputs:
+
+ - mask/anatomy/brain.nii.gz = masked image from fsl view
+ - highres001_brain.nii.gz = The extracted brain image 
 
 Parameters
 
@@ -179,18 +181,28 @@ Parameters
  - f = fractional intensity threshold
  - g = vertical gradient in fractional intensity threshold (-1, 1)
 
+Returns
+
+ - Path to anatomy/highres001_brain.nii.gz
+
 ###### Bias field estimation
 
 ```python
- def estimate_bias_field(subject, overwrite = False):
+def estimate_bias_field(self, subject, brain_image, overwrite=False)
 ```
 
  - Before running FAST an image of a head should first be brain-extracted, using BET. The resulting brain-only image can then be fed into FAST.
 
+Outputs:
+
+ - highres001_bias.nii.gz = output estimated bias field
+ - highres001_restore.nii.gz = output restored image (bias-corrected image)
+
 Parameters
 
  - subject = Subject Dir object
- - overwrite = States whether or not to overwrite the image
+ - brain_image = Path to the image after it was extracted by BET
+ - overwrite = False
 
 Returns:
 

@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{933f1c32-5dc1-4720-97bf-0248ef5b5c66}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>make_ds.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+    <InterpreterVersion />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Daniel\pre_analysis.py" />
+    <Compile Include="make_ds.py" />
+    <Compile Include="OpenFMRIAnalyzer.py" />
+    <Compile Include="OpenFMRIData.py" />
+    <Compile Include="pre_proc_fromexample.py" />
+    <Compile Include="pymvpa2_cv_setup.py" />
+    <Compile Include="pymvpa2_permute_ds.py" />
+    <Compile Include="QualityAnalyzer.py" />
+    <Compile Include="Roee\pre_analysis.py" />
+    <Compile Include="Roni\pre_analysis.py" />
+    <Compile Include="single_subject_sl.py" />
+    <Compile Include="SubjectDir.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="data\AV\task_mapping.txt" />
+    <Content Include="data\AV\task_order.txt" />
+    <Content Include="data\task_order.txt" />
+    <Content Include="doc\AfterOpenFMRI.png" />
+    <Content Include="doc\BeforeOpenFMRI.png" />
+    <Content Include="test\task_mapping.txt" />
+    <Content Include="test\task_order.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Daniel" />
+    <Folder Include="data" />
+    <Folder Include="data\AV" />
+    <Folder Include="doc" />
+    <Folder Include="Roee" />
+    <Folder Include="Roni" />
+    <Folder Include="test" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>

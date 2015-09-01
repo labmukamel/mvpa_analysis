@@ -1,4 +1,4 @@
-#!/usr/bin/python
+﻿#!/usr/bin/python
 
 import os
 from glob import glob
@@ -205,12 +205,13 @@ class SubjectDir(object):
 
     def anatomical_dir(self):
         return os.path.join(self._path, self._subdirs['anatomical'])
+    
+    def anatomical_nii(self, ext = ''):
+        if(ext != ''):
+            ext = '_'+ext
 
-    def anatomical_brain_nii(self):
-        return os.path.join(self.anatomical_dir(), 'highres001_brain.nii.gz')
+        return os.path.join(self.anatomical_dir(), 'highres001{}.nii.gz'.format(ext))
 
-    def anatomical_nii(self):
-        return os.path.join(self.anatomical_dir(), 'highres001.nii.gz')
 
     def model_dir(self):
         return os.path.join(self._path, self._subdirs['model'])
