@@ -297,6 +297,8 @@ class OpenFMRIAnalyzer(object):
             return anat_filename
 
         try:
+            lastcwd = os.getcwd()
+            os.chdir(subject.anatomical_dir())
             fast = fsl.FAST(in_files=brain_image,                            
                             out_basename=subject.anatomical_nii()[:-7], # removing '.nii.gz'
                             bias_lowpass=10, # bias field smoothing extent (FWHM) in mm
@@ -308,7 +310,7 @@ class OpenFMRIAnalyzer(object):
                             iters_afterbias=1)  # number of main-loop iterations after bias-field removal
 
             fast = fast.run()
-
+            os.chdir(lastcwd)
             # TODO need to remove temporary files created by this process
 
             os.rename(
@@ -316,7 +318,7 @@ class OpenFMRIAnalyzer(object):
                 anat_filename.replace(
                     '.nii.gz',
                     '_pre_restore.nii.gz'))
-            shutil.copy(fast.outputs.image_restored, anat_filename)
+            shutil.copy(fast.outputs.restored_image, anat_filename)
             return anat_filename
         except Exception as ex:
             print ex
