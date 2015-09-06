@@ -30,7 +30,7 @@
 2. Download MVPA Analysis
 Open the terminal and run
 
-        git clone https://github.com/liorshk/mvpa_analysis.git
+        git clone https://github.com/labmukamel/mvpa_analysis.git
 
 Notes:
 
@@ -211,3 +211,69 @@ Parameters
 Returns:
 
  - Path to 'highres001.nii.gz' file
+ 
+ ###### Motion Correction
+
+```python
+def motion_correction(subject, merge_task_runs=False)
+```
+
+Uses MCFLIRT to run motion correction on the bold image
+
+Outputs:
+
+ - bold_mcf.nii.gz = The image after motion correction for each functional folder
+
+Parameters
+
+ - subject = Subject Dir object
+ - merge_task_runs = if true - Merges the files before motion correction and after it's done we split them back
+ 
+###### Anatomical Registration
+
+```python
+def anatomical_registration(subject):
+```
+
+1) Runs FLIRT on the brain extracted anatomy image with MNI152_T1_2mm_brain.nii.gz as reference
+2) Runs FNIRT on the anatomy image
+
+Outputs:
+
+ - anatomy/reg/highres2standard.nii.gz
+ - anatomy/reg/highres2standard.mat
+ 
+ - anatomy/reg/highres2highres_jac
+ - anatomy/reg/highres2standard_warp.nii.gz
+
+Parameters
+
+ - subject = Subject Dir object
+
+###### Functional Segmentation
+
+```python
+def functional_segmentation(subject):
+```
+
+Outputs:
+
+ - masks/*run_name*/grey.nii.gz
+
+Parameters
+
+ - subject = Subject Dir object
+ 
+###### Anatomical Segmentation
+
+```python
+def segmentation(subject):
+```
+
+Outputs:
+
+ - masks/anatomy/grey.nii.gz
+
+Parameters
+
+ - subject = Subject Dir object
