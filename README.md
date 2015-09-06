@@ -48,6 +48,10 @@ Notes:
 ### Metadata
 
 #### Task Order File (task_order.txt)
+
+The task order file can be general for all subjects and for a specific subject.
+In order to use it for specific subjects we can add a file task_order_sub***.txt in the save directory as the task_order.txt
+
     task001_run001
     task001_run002
     task001_run003

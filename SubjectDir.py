@@ -52,6 +52,9 @@ class SubjectDir(object):
 
     def __isValid__(self, path):
 
+        if(not os.path.isdir(self._path)):
+            return False
+
         # Must have all the relevant folders(BOLD,anatomy,model,masks,behav)
         if os.listdir(path).sort() != self._subdirs.values().sort():
             print("Openfmri directory doesn't have all its subdirectories")

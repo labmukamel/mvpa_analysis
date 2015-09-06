@@ -44,7 +44,6 @@ class OpenFMRIAnalyzer(object):
             brain_image = self.extract_brain(subject)
             anat_image = self.estimate_bias_field(subject, brain_image)
         for subject in self._subjects_list:
-
             if 'mc_merge' in kwargs:
                 self.motion_correction(subject, kwargs['mc_merge'])
             else:
@@ -353,7 +352,7 @@ class OpenFMRIAnalyzer(object):
 
         if not overwrite and os.path.isfile(brain_image):
             print(">>>> Skipped")
-            return
+            return brain_image
 
         input_image = subject.anatomical_nii()
         
