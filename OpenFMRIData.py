@@ -130,7 +130,7 @@ class OpenFMRIData(object):
                 SubjectDir Object
         """
 
-        if overwrite:
+        if overwrite and subject_name in self._subject_mapping:
             subject_code = self._subject_mapping[subject_name]
         else:
             # Gets the largest/latest subject code + 1 (from the study directory)

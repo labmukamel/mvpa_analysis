@@ -59,6 +59,7 @@ class OpenFMRIAnalyzer(object):
             else:
                 self.segmentation(subject)
                 self.generate_functional_gm_masks(subject)
+        for subject in self._subjects_list:
 
     def generate_functional_gm_masks(self, subject):
         print ">>> Creating functional gray matter masks"
@@ -139,12 +140,30 @@ class OpenFMRIAnalyzer(object):
                 apply_warp.run()
 
     def anatomical_registration(self, subject):
+        """
+            Anatomical Registration
+
+            1) Runs FLIRT on the brain extracted anatomy image with MNI152_T1_2mm_brain.nii.gz as reference
+            2) Runs FNIRT on the anatomy image
+
+            Outputs:
+                 anatomy/reg/highres2standard.nii.gz
+                 anatomy/reg/highres2standard.mat
+                 anatomy/reg/highres2highres_jac
+                 anatomy/reg/highres2standard_warp.nii.gz
+
+            Parameters
+                subject = Subject Dir object
+
+        """
         print ">>> Anatomical registration"
 
         brain_image = subject.anatomical_nii('brain')
+        
         reg_dir = os.path.join(subject.anatomical_dir(), 'reg')
         out_file = os.path.join(reg_dir, 'highres2standard.nii.gz')
         out_mat_file = os.path.join(reg_dir, 'highres2standard.mat')
+
         standard_image = fsl.Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
 
         if not os.path.isfile(out_mat_file):
@@ -162,14 +181,16 @@ class OpenFMRIAnalyzer(object):
                               interp='trilinear')
             flirt.run()
 
-        anatomical_head = os.path.join(
-            subject.anatomical_dir(), 'highres001.nii.gz')
+        anatomical_head = subject.anatomical_nii()
+
         output_fielf_coeff = os.path.join(
             reg_dir, 'highres2standard_warp.nii.gz')
         output_jacobian = os.path.join(reg_dir, 'highres2highres_jac')
+
         standard_head = fsl.Info.standard_image('MNI152_T1_2mm.nii.gz')
         standard_mask = fsl.Info.standard_image(
             'MNI152_T1_2mm_brain_mask_dil.nii.gz')
+
         if not os.path.isfile(output_fielf_coeff):
             print ">>> FNIRT"
             fnirt = fsl.FNIRT(warped_file=out_file,
@@ -186,6 +207,16 @@ class OpenFMRIAnalyzer(object):
                                    shell=True, preexec_fn=os.setsid)
 
     def functional_segmentation(self, subject):
+        """
+            Functional Segmentation
+
+            Outputs:
+                 masks/*run_name*/grey.nii.gz
+
+            Parameters
+                subject = Subject Dir object
+
+        """
         print ">>> Functional Segmentation"
 
         for task, directories in subject.dir_tree('functional').iteritems():
@@ -193,11 +224,14 @@ class OpenFMRIAnalyzer(object):
                 run_name = directory.split('/')[-1]
                 gm_mask_name = os.path.join(
                     subject.masks_dir(), run_name, 'grey.nii.gz')
+
                 if os.path.isfile(gm_mask_name):
                     continue
+
                 bold_file = os.path.join(directory, 'mid_func.nii.gz')
                 out_basename = os.path.join(
                     subject.masks_dir(), run_name, 'seg')
+
                 fast = fsl.FAST(in_files=bold_file,
                                 out_basename=out_basename,
                                 img_type=2,
@@ -219,7 +253,16 @@ class OpenFMRIAnalyzer(object):
                     pass
 
     def segmentation(self, subject):
+        """
+            Segmentation
 
+            Outputs:
+                 masks/anatomy/grey.nii.gz
+
+            Parameters
+                subject = Subject Dir object
+
+        """
         print ">>> Segmentation"
 
         gm_mask_name = os.path.join(
@@ -227,9 +270,8 @@ class OpenFMRIAnalyzer(object):
         if os.path.isfile(gm_mask_name):
             return
 
-        brain_image = os.path.join(
-            subject.anatomical_dir(),
-            "highres001_brain.nii.gz")
+        brain_image = subject.anatomical_nii("brain")
+
         fast = fsl.FAST(
             in_files=brain_image,
             out_basename=os.path.join(
@@ -300,13 +342,13 @@ class OpenFMRIAnalyzer(object):
             lastcwd = os.getcwd()
             os.chdir(subject.anatomical_dir())
             fast = fsl.FAST(in_files=brain_image,                            
-                            out_basename=subject.anatomical_nii()[:-7], # removing '.nii.gz'
-                            bias_lowpass=10, # bias field smoothing extent (FWHM) in mm
-                            output_biascorrected=True, # output restored image (bias-corrected image)
+                            out_basename=subject.anatomical_nii()[:-7],  # removing '.nii.gz'
+                            bias_lowpass=10,  # bias field smoothing extent (FWHM) in mm
+                            output_biascorrected=True,  # output restored image (bias-corrected image)
                             output_biasfield=True,  # output estimated bias field
                             img_type=1,  # T1
                             bias_iters=5,  # number of main-loop iterations during bias-field removal
-                            no_pve=True, # turn off PVE (partial volume estimation)
+                            no_pve=True,  # turn off PVE (partial volume estimation)
                             iters_afterbias=1)  # number of main-loop iterations after bias-field removal
 
             fast = fast.run()
@@ -407,7 +449,7 @@ class OpenFMRIAnalyzer(object):
             output_file,
             subject,
             directory,
-            use_example_pp=True):
+            use_example_pp=False):
         # Check whether motion correction has already been completed
         if os.path.isfile(output_file):
             return
@@ -484,6 +526,17 @@ class OpenFMRIAnalyzer(object):
             pmp.run()
 
     def motion_correction(self, subject, merge_task_runs=False):
+        """
+            Motion Correction
+
+            Outputs:
+                bold_mcf.nii.gz = The image after motion correction for each functional folder
+
+            Parameters
+                subject = Subject Dir object
+                merge_task_runs = if true - Merges the files before motion correction and after it's done we split them back
+
+        """
         print ">>> Motion correction"
 
         # TODO: Make sure we skip this step if motion is already corrected
@@ -568,7 +621,6 @@ class OpenFMRIAnalyzer(object):
 
                     self.__motion_correct_file__(
                         input_file, output_file, subject, directory)
-
 
 def test():
     fmri_data = OpenFMRIData(
