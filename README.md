@@ -212,7 +212,46 @@ Returns:
 
  - Path to 'highres001.nii.gz' file
  
- ###### Motion Correction
+###### Slice Time Correction
+
+```python
+def slice_time_correction(self,subject,time_repetition = 2):
+```
+    
+Outputs:
+
+ - BOLD/*run_name*/bold_stc.nii.gz
+
+Parameters
+
+ - subject = Subject Dir object
+ - time_repetition = TR of data
+
+###### Smoothing
+
+```python
+def functional_smoothing(self,subject,fwhm,brightness_threshold,use_median = True):
+
+def anatomical_smoothing(self,subject,fwhm,brightness_threshold,use_median = True):
+```
+
+Using SUSAN to perform smoothing
+
+Outputs:
+
+ - BOLD/*run*/bold_smooth.nii.gz
+ - anatomical/highres001_smooth.nii.gz
+
+Parameters
+
+ - subject = Subject Dir object
+ - fwhm = fwhm of smoothing, in mm, gets converted using sqrt(8*log(2))
+ - brightness_threshold = brightness threshold and should be greater than noise level and less
+                           than contrast of edges to be preserved.
+ - use_median = whether to use a local median filter in the cases where single-point
+                 noise is detected
+ 
+###### Motion Correction
 
 ```python
 def motion_correction(subject, merge_task_runs=False)
