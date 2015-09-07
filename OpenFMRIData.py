@@ -41,7 +41,7 @@ class OpenFMRIData(object):
             self._subject_mapping = dict()
             self.__write_subject_mapping__()
 
-    def load_task_order(self,subcode = None):
+    def load_task_order(self,subname = None):
         """
         Loads the task order of the
 
@@ -49,8 +49,8 @@ class OpenFMRIData(object):
              subcode: The task order can be specified for specific subjects
         """
         regPath = path = os.path.join(self._study_dir, 'task_order.txt')
-        if(subcode):
-            path = os.path.join(self._study_dir, 'task_order_sub{:0>3d}.txt'.format(subcode))
+        if(subname):
+            path = os.path.join(self._study_dir, 'task_order_{}.txt'.format(subname))
             if(not os.path.exists(path)):
                 path = regPath
         else:
@@ -139,7 +139,7 @@ class OpenFMRIData(object):
         # Adds the the new subject name to the subject_mapping dictionary
         self._subject_mapping[subject_name] = subject_code
 
-        taskOrder = self.load_task_order(subject_code)
+        taskOrder = self.load_task_order(subject_name)
 
         # Check whether subject raw directory exists before adding the mapping
         raw_dirs = glob('{}/*{}*'.format(self.raw_study_dir(), subject_name))
@@ -193,7 +193,8 @@ class OpenFMRIData(object):
                     fnc = kwargs['create_behav_dict']
                 return self.create_subject_dir(subject_name,fnc)
 
-        taskOrder = self.load_task_order(subject_code)
+        if(subject_name):
+            taskOrder = self.load_task_order(subject_name)
 
         # Params-
         #	1) subject_code, 2) data_dir/study_name/sub[subject_code], 3) Don't send the raw directory
