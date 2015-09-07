@@ -505,7 +505,7 @@ class OpenFMRIAnalyzer(object):
             shutil.copy(restore_file, anat_filename)
             return anat_filename
 
-    def extract_brain(self, subject, overwrite=False, f=0.5, g=-0.1):
+    def extract_brain(self, subject, overwrite=False, f=0.5, g=-0.1, automatic_approval = False):
         """
             Brain Extraction
 
@@ -518,6 +518,7 @@ class OpenFMRIAnalyzer(object):
                 overwrite = States whether or not to overwrite the image
                 f = fractional intensity threshold
                 g = vertical gradient in fractional intensity threshold (-1, 1)
+                automatic_approval = If true we skip the fslview window
 
             Returns
                 Path to anatomy/highres001_brain.nii.gz
@@ -544,28 +545,29 @@ class OpenFMRIAnalyzer(object):
 
         result = bet.run()
 
-        is_ok = 'n'
-        while 'n' in is_ok:
-            cmd = 'fslview {} {} -l Green'.format(
-                input_image, result.outputs.out_file)
-            pro = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                shell=True,
-                preexec_fn=os.setsid)
+        if(not automatic_approval):
+            is_ok = 'n'
+            while 'n' in is_ok:
+                cmd = 'fslview {} {} -l Green'.format(
+                    input_image, result.outputs.out_file)
+                pro = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    shell=True,
+                    preexec_fn=os.setsid)
 
-            is_ok = raw_input("Is this ok? [y]/n\n") or 'y'
-            if 'n' in is_ok:
-                bet.inputs.frac = float(
-                    raw_input(
-                        "Set fraction: default is previous ({})\n".format(
-                            bet.inputs.frac)) or bet.inputs.frac)
-                bet.inputs.vertical_gradient = float(
-                    raw_input(
-                        "Set gradient: default is previous ({})\n".format(
-                            bet.inputs.vertical_gradient)) or bet.inputs.vertical_gradient)
-                result = bet.run()
-            os.killpg(pro.pid, signal.SIGTERM)
+                is_ok = raw_input("Is this ok? [y]/n\n") or 'y'
+                if 'n' in is_ok:
+                    bet.inputs.frac = float(
+                        raw_input(
+                            "Set fraction: default is previous ({})\n".format(
+                                bet.inputs.frac)) or bet.inputs.frac)
+                    bet.inputs.vertical_gradient = float(
+                        raw_input(
+                            "Set gradient: default is previous ({})\n".format(
+                                bet.inputs.vertical_gradient)) or bet.inputs.vertical_gradient)
+                    result = bet.run()
+                os.killpg(pro.pid, signal.SIGTERM)
 
         # Saves the anatomical brain after mask to the mask directory
         os.rename(subject.anatomical_nii('brain_mask'),
