@@ -39,20 +39,41 @@ class OpenFMRIAnalyzer(object):
         self._subjects_list.append(subject_dir)
 
     def analyze(self, **kwargs):
+
+        # Brain Extraction and bias field estimation
         for subject in self._subjects_list:
             print "Started:{}".format(subject)
             brain_image = self.extract_brain(subject)
             anat_image = self.estimate_bias_field(subject, brain_image)
+
+        # Motion Correction
         for subject in self._subjects_list:
             if 'mc_merge' in kwargs:
                 self.motion_correction(subject, kwargs['mc_merge'])
             else:
                 self.motion_correction(subject)
 
+        # Slice‐time correction
+        for subject in self._subjects_list:
+            self.slice_time_correction(subject)
+
+        # Spatial  filtering  ( Smoothing)
+        if('fwhm' in kwargs and 'brightness_threshold' in kwargs):
+            for subject in self._subjects_list:
+                self.anatomical_smoothing(subject,kwargs['fwhm'],kwargs['brightness_threshold'])
+                self.functional_smoothing(subject,kwargs['fwhm'],kwargs['brightness_threshold'])
+
+        # Temporal  filtering (High Pass)
+
+        # Anatomical Registration
         for subject in self._subjects_list:
             self.anatomical_registration(subject)
+
+        # Functional Registration
         for subject in self._subjects_list:
             self.functional_registration(subject)
+
+        # Segmentation
         for subject in self._subjects_list:
             if 'func_seg' in kwargs:
                 self.functional_segmentation(subject)
@@ -80,10 +101,112 @@ class OpenFMRIAnalyzer(object):
                     subject.masks_dir(), run_name, mask_name)
                 gm2func_mask.run()
 
+    def slice_time_correction(self,subject,time_repetition = 2):
+        """
+            Slice Time Correction
+
+            Outputs:
+                 BOLD/*run_name*/bold_stc.nii.gz
+
+            Parameters
+                subject = Subject Dir object
+                time_repetition = TR of data
+
+        """
+        print ">>> Slice Time Correction"
+
+        for task, directories in subject.dir_tree('functional').iteritems():
+            for directory in directories:
+
+                bold_file = os.path.join(directory, 'bold.nii.gz')
+                stc_file = os.path.join(directory, 'bold_stc.nii.gz')
+
+                if os.path.isfile(stc_file):
+                    print "Slice Time Correction for {} already performed".format(directory)
+                    continue
+
+                st = fsl.SliceTimer()
+                st.inputs.in_file = bold_file
+                st.inputs.out_file = stc_file
+                st.inputs.interleaved = True
+                st.inputs.time_repetition = time_repetition # TR of data
+                #st.inputs.slice_direction = 3 # direction of slice acquisition (x=1, y=2, z=3) - default is z
+                #st.inputs.global_shift = 0.5 # shift in fraction of TR, range 0:1 (default is 0.5 = no shift)
+
+                try:
+                    result = st.run()
+                except Exception as ex:
+                    print ex
+
+    def anatomical_smoothing(self,subject,fwhm,brightness_threshold,use_median = True):
+        """
+            Using SUSAN to perform smoothing
+
+            Outputs:
+                 anatomical/highres001_smooth.nii.gz
+
+            Parameters
+                subject = Subject Dir object
+                fwhm = fwhm of smoothing, in mm, gets converted using sqrt(8*log(2))
+                brightness_threshold = brightness threshold and should be greater than noise level and less
+                                       than contrast of edges to be preserved.
+                use_median = whether to use a local median filter in the cases where single-point
+                             noise is detected
+
+        """
+        print ">>> Anatomical Smoothing"
+
+        anat_file = subject.anatomical_nii()
+        smooth_file = subject.anatomical_nii('smooth')
+
+        if not os.path.isfile(smooth_file):
+             self.__smoothing__(self,anat_file,smooth_file,fwhm,brightness_threshold,use_median)
+
+    def functional_smoothing(self,subject,fwhm,brightness_threshold,use_median = True):
+        """
+            Using SUSAN to perform smoothing
+
+            Outputs:
+                 BOLD/*run*/bold_smooth.nii.gz
+
+            Parameters
+                subject = Subject Dir object
+                fwhm = fwhm of smoothing, in mm, gets converted using sqrt(8*log(2))
+                brightness_threshold = brightness threshold and should be greater than noise level and less
+                                       than contrast of edges to be preserved.
+                use_median = whether to use a local median filter in the cases where single-point
+                             noise is detected
+
+        """
+        print ">>> Functional Smoothing"
+
+        for task, directories in subject.dir_tree('functional').iteritems():
+            for directory in directories:
+
+                bold_file = os.path.join(directory, 'bold.nii.gz')
+                smooth_file = os.path.join(directory, 'bold_smooth.nii.gz')
+
+                if not os.path.isfile(smooth_file):
+                    self.__smoothing__(self,bold_file,smooth_file,fwhm,brightness_threshold,use_median)
+
     def functional_registration(self, subject):
+        """
+            Functional Registration
+
+
+            Outputs:
+                bold/reg/example_func2standard.nii.gz = Warped output file
+                bold/reg/example_func2standard_warp.nii.gz = containing the warp as field or coefficients.
+
+
+            Parameters
+                subject = Subject Dir object
+
+        """
         print ">>> Functional Registration"
 
         brain_image = subject.anatomical_nii('brain')
+
         for task, directories in subject.dir_tree('functional').iteritems():
             for directory in directories:
                 bold_file = os.path.join(directory, 'bold_mcf.nii.gz')
@@ -95,22 +218,29 @@ class OpenFMRIAnalyzer(object):
                         'highres2example_func.mat')):
                     print "registration for {} already performed".format(directory)
                     continue
+
                 print "working on {}".format(directory)
                 if not os.path.isdir(reg_dir):
                     os.mkdir(reg_dir)
                 else:
                     shutil.rmtree(reg_dir)
+
                 log_file = os.path.join(directory, 'log_reg')
                 mid_file = os.path.join(directory, 'mid_func.nii.gz')
+
+                # Uses FSL Fslroi command to extract region of interest (ROI) from an image.
                 extract_mid = fsl.ExtractROI(in_file=bold_file,
-                                             roi_file=mid_file,
-                                             t_min=bold_length / 2,
+                                             roi_file=mid_file, # Output
+                                             t_min=bold_length / 2, # Time (middle)
                                              t_size=1)
                 result = extract_mid.run()
 #				cmd = 'mainfeatreg -F 6.00 -d {} -l {} -i {} -h {} -w BBR -x 90 > /dev/null'.format(directory,log_file,mid_file, brain_image)
+
+                #  Mainfeatreg performs the registrations for FEAT ( as well as some fieldmap related operations )
                 cmd = 'mainfeatreg -F 6.00 -d {} -l {} -i {} -h {} -w 6 -x 90  > /dev/null'.format(
                     directory, log_file, mid_file, brain_image)
                 subprocess.call(cmd, shell=True)
+
                 anat_reg_dir = os.path.join(subject.anatomical_dir(), 'reg')
                 highres2mni_mat = os.path.join(
                     anat_reg_dir, 'highres2standard.mat')
@@ -123,16 +253,20 @@ class OpenFMRIAnalyzer(object):
 
                 standard_image = fsl.Info.standard_image(
                     'MNI152_T1_2mm_brain.nii.gz')
+
+                # combining multiple transforms into one.
                 convert_warp = fsl.utils.ConvertWarp(
                     reference=standard_image,
-                    premat=example_func2highres_mat,
-                    warp1=highres2standard_warp,
+                    premat=example_func2highres_mat, # filename for pre-transform (affine matrix)
+                    warp1=highres2standard_warp, #  Name of file containing initial warp-fields/coefficients
                     out_file=example_func2standard_warp)
                 convert_warp.run()
+
+                # Use applywarp to apply the results of a FNIRT registration
                 apply_warp = fsl.preprocess.ApplyWarp(
                     ref_file=standard_image,
                     in_file=mid_file,
-                    field_file=example_func2standard_warp,
+                    field_file=example_func2standard_warp, # file containing warp field
                     out_file=os.path.join(
                         reg_dir,
                         'example_func2standard.nii.gz'))
@@ -440,88 +574,6 @@ class OpenFMRIAnalyzer(object):
 
         return brain_image
 
-    def __motion_correct_file__(
-            self,
-            input_file,
-            output_file,
-            subject,
-            directory,
-            use_example_pp=False):
-        # Check whether motion correction has already been completed
-        if os.path.isfile(output_file):
-            return
-
-        print "{}".format(input_file)
-
-        if use_example_pp:
-            pp.preproc.inputs.inputspec.func = input_file
-            pp.preproc.inputs.inputspec.struct = os.path.join(
-                subject.anatomical_dir(), 'highres001.nii.gz')
-            pp.preproc.base_dir = directory
-
-            pp.preproc.run()
-            # TODO: copy motion correction photos as well
-            intnorm_file = output_file.replace('.nii.gz', '_intnorm.nii.gz')
-            shutil.copy(
-                os.path.join(
-                    directory,
-                    'preproc',
-                    'intnorm',
-                    'mapflow',
-                    '_intnorm0',
-                    'bold_dtype_mcf_mask_intnorm.nii.gz'),
-                intnorm_file)
-            shutil.copy(
-                os.path.join(
-                    directory,
-                    'preproc',
-                    'maskfunc2',
-                    'mapflow',
-                    '_maskfunc20',
-                    'bold_dtype_mcf_mask.nii.gz'),
-                output_file)
-            cmd = "eog {}".format(
-                os.path.join(
-                    directory,
-                    'preproc',
-                    'realign',
-                    'mapflow',
-                    '_realign0',
-                    'bold_dtype_mcf.nii.gz_rot.png'))
-            subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                shell=True,
-                preexec_fn=os.setsid)
-            cmd = "eog {}".format(
-                os.path.join(
-                    directory,
-                    'preproc',
-                    'realign',
-                    'mapflow',
-                    '_realign0',
-                    'bold_dtype_mcf.nii.gz_trans.png'))
-            subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                shell=True,
-                preexec_fn=os.setsid)
-
-        else:
-            mcflt = fsl.MCFLIRT(
-                in_file=input_file,
-                out_file=output_file,
-                save_plots=True)
-            result = mcflt.run()
-
-            pmp = fsl.PlotMotionParams(
-                in_file=result.outputs.par_file, in_source='fsl')
-
-            pmp.inputs.plot_type = 'rotations'
-            pmp.run()
-            pmp.inputs.plot_type = 'translations'
-            pmp.run()
-
     def motion_correction(self, subject, merge_task_runs=False):
         """
             Motion Correction
@@ -618,6 +670,103 @@ class OpenFMRIAnalyzer(object):
 
                     self.__motion_correct_file__(
                         input_file, output_file, subject, directory)
+
+    def __smoothing__(self,in_file,out_file,fwhm,brightness_threshold,use_median = True):
+
+        sus = fsl.SUSAN()
+        sus.inputs.in_file = in_file
+        sus.inputs.out_file = out_file
+        sus.inputs.brightness_threshold = brightness_threshold
+        sus.inputs.fwhm = fwhm
+        sus.inputs.use_median = use_median
+
+        try:
+            result = sus.run()
+        except Exception as ex:
+            print ex
+            raise ex
+
+    def __motion_correct_file__(
+            self,
+            input_file,
+            output_file,
+            subject,
+            directory,
+            use_example_pp=False):
+        # Check whether motion correction has already been completed
+        if os.path.isfile(output_file):
+            return
+
+        print "{}".format(input_file)
+
+        if use_example_pp:
+            pp.preproc.inputs.inputspec.func = input_file
+            pp.preproc.inputs.inputspec.struct = os.path.join(
+                subject.anatomical_dir(), 'highres001.nii.gz')
+            pp.preproc.base_dir = directory
+
+            pp.preproc.run()
+            # TODO: copy motion correction photos as well
+            intnorm_file = output_file.replace('.nii.gz', '_intnorm.nii.gz')
+            shutil.copy(
+                os.path.join(
+                    directory,
+                    'preproc',
+                    'intnorm',
+                    'mapflow',
+                    '_intnorm0',
+                    'bold_dtype_mcf_mask_intnorm.nii.gz'),
+                intnorm_file)
+            shutil.copy(
+                os.path.join(
+                    directory,
+                    'preproc',
+                    'maskfunc2',
+                    'mapflow',
+                    '_maskfunc20',
+                    'bold_dtype_mcf_mask.nii.gz'),
+                output_file)
+            cmd = "eog {}".format(
+                os.path.join(
+                    directory,
+                    'preproc',
+                    'realign',
+                    'mapflow',
+                    '_realign0',
+                    'bold_dtype_mcf.nii.gz_rot.png'))
+            subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                shell=True,
+                preexec_fn=os.setsid)
+            cmd = "eog {}".format(
+                os.path.join(
+                    directory,
+                    'preproc',
+                    'realign',
+                    'mapflow',
+                    '_realign0',
+                    'bold_dtype_mcf.nii.gz_trans.png'))
+            subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                shell=True,
+                preexec_fn=os.setsid)
+
+        else:
+            mcflt = fsl.MCFLIRT(
+                in_file=input_file,
+                out_file=output_file,
+                save_plots=True)
+            result = mcflt.run()
+
+            pmp = fsl.PlotMotionParams(
+                in_file=result.outputs.par_file, in_source='fsl')
+
+            pmp.inputs.plot_type = 'rotations'
+            pmp.run()
+            pmp.inputs.plot_type = 'translations'
+            pmp.run()
 
 
 
