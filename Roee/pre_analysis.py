@@ -22,4 +22,5 @@ for name in subject_names:
     # if we want to create new data for analysis
     # subject_dir = op.create_subject_dir(name)
     analyzer = OpenFMRIAnalyzer(op,[subject_dir])
-    analyzer.analyze()
+
+    analyzer.anatomical_smoothing(subject_dir,8.0,2000.0)
