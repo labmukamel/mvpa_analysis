@@ -173,7 +173,7 @@ class SubjectDir(object):
 			- MPRAGE directory ->  NIFTY in anatomical folder(anatomy/highres001.nii.gz)
 			- ep2 directories ->  NIFTY in functional folder(bold/taskxxx_runxxx/bold.nii.gz)
 		"""
-        raw_anatomical = glob("{}/*MPRAGE_iso*".format(self._raw_path))[
+        raw_anatomical = glob("{}/*MPRAGE*".format(self._raw_path))[
             0]  # The anatomical directory in the raw data contains MPRAGE
         raw_functional_dirs = sorted(
             glob("{}/*ep2*".format(self._raw_path)))  # The functional directories in the raw data contains ep2
