@@ -321,6 +321,8 @@ class OpenFMRIAnalyzer(object):
                               searchr_z=[-90, 90], # search angles along z-axis, in degrees
                               interp='trilinear') # 'trilinear' or 'nearestneighbour' or 'sinc' or 'spline'
             flirt.run()
+        else:
+            print(">>>> FLIRT has already been performed")
 
         anatomical_head = subject.anatomical_nii()
 
@@ -346,6 +348,8 @@ class OpenFMRIAnalyzer(object):
             cmd = 'fslview {} {} -t 0.5 '.format(standard_image, out_file)
             pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    shell=True, preexec_fn=os.setsid)
+        else:
+            print(">>>> FNIRT has already been performed")
 
     def functional_segmentation(self, subject):
         """
@@ -646,6 +650,7 @@ class OpenFMRIAnalyzer(object):
                     merger.inputs.merged_file = merge_file
 
                     merger.run()
+
                     self.__motion_correct_file__(
                         merge_file, mcf_merge_file, subject, merge_dir)
 
@@ -680,6 +685,10 @@ class OpenFMRIAnalyzer(object):
                 for directory in sorted(directories):
                     input_file = os.path.join(directory, 'bold.nii.gz')
                     output_file = input_file.replace('.nii.gz', '_mcf.nii.gz')
+
+                    if os.path.isfile(output_file):
+                         print ">>>> MC has already been performed for {}".format(directory)
+                         continue
 
                     try:
                         self.__beforechange__(input_file,'mcf')
@@ -720,9 +729,6 @@ class OpenFMRIAnalyzer(object):
             directory,
             use_example_pp=False):
         # Check whether motion correction has already been completed
-        if os.path.isfile(output_file):
-            print ">>>> MC has already been performed for {}".format(directory)
-            return
 
         print ">>>> Working on {}".format(input_file)
 
