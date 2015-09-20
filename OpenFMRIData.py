@@ -191,7 +191,7 @@ class OpenFMRIData(object):
                 fnc = None
                 if('create_behav_dict' in kwargs):
                     fnc = kwargs['create_behav_dict']
-                return self.create_subject_dir(subject_name,fnc)
+                return self.create_subject_dir(subject_name,create_behav_dict=fnc)
 
         if(subject_name):
             taskOrder = self.load_task_order(subject_name)

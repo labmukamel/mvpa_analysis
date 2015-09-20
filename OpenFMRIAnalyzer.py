@@ -336,7 +336,8 @@ class OpenFMRIAnalyzer(object):
 
         if not os.path.isfile(output_fielf_coeff):
             print ">>>> FNIRT"
-            fnirt = fsl.FNIRT(warped_file=out_file,
+            # non-linear registration.
+            fnirt = fsl.FNIRT(warped_file=out_file, # warped image
                               in_file=anatomical_head,
                               affine_file=out_mat_file, # Affine matrix to use
                               fieldcoeff_file=output_fielf_coeff, # name of output file with field coefficients or true
@@ -807,11 +808,11 @@ class OpenFMRIAnalyzer(object):
     def __afterchange__(self,input_file,output_file,ext,success):
         backup = input_file.replace('.nii.gz','_pre_{}.nii.gz'.format(ext))
         if(success):
-            shutil.copy(output_file,input_file)
+            #shutil.copy(output_file,input_file)
             #os.remove(output_file) - We don't remove this because that's how we check if we did the process already
             os.remove(backup)
         else:
-            shutil.copy(backup,input_file)
+            #shutil.copy(backup,input_file)
             if(os.exists(output_file)):
                 os.remove(output_file)
             if(os.exists(backup)):
