@@ -74,7 +74,19 @@ In order to use it for specific subjects we can add a file task_order_*SubjectNa
     40	 1	 2	 incongruent	 719	 
     52	 1	 1	 congruent	 544	 
     64	 1	 1	 congruent	 436	 
-    76	 1	 2	 incongruent	 470	 
+    76	 1	 2	 incongruent	 470
+#### Condition Key (condition_key.txt)
+
+    task001 cond001 congruent_correct
+    task001 cond002 congruent_incorrect
+    task001 cond003 incongruent_correct
+    task001 cond004 incongruent_incorrect 
+#### Contrast Key (contrast_key.txt)
+
+    task001 incongruent_vs_congruent -1 -1 1 1
+    task001 incorrect_vs_correct -1 1 -1 1
+    task001 incongruent_vs_congruent_correct -1 0 1 0
+    task001 incorrect_vs_correct_incongruent 0 0 -1 1 
 ## Code Design
 ### SubjectDir
  
