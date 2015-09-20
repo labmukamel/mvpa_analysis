@@ -122,7 +122,7 @@ class OpenFMRIAnalyzer(object):
                 stc_file = os.path.join(directory, 'bold_stc.nii.gz')
 
                 if os.path.isfile(stc_file):
-                    print "Slice Time Correction for {} already performed".format(directory)
+                    print ">>>> STC has already been performed for {}".format(directory)
                     continue
 
                 st = fsl.SliceTimer()
@@ -134,9 +134,12 @@ class OpenFMRIAnalyzer(object):
                 #st.inputs.global_shift = 0.5 # shift in fraction of TR, range 0:1 (default is 0.5 = no shift)
 
                 try:
+                    self.__beforechange__(bold_file,'stc')
                     result = st.run()
+                    self.__afterchange__(bold_file,stc_file,'stc',True)
                 except Exception as ex:
                     print ex
+                    self.__afterchange__(bold_file,stc_file,'stc',False)
 
     def anatomical_smoothing(self,subject,fwhm,brightness_threshold,use_median = True):
         """
@@ -160,7 +163,9 @@ class OpenFMRIAnalyzer(object):
         smooth_file = subject.anatomical_nii('smooth')
 
         if not os.path.isfile(smooth_file):
-             self.__smoothing__(self,anat_file,smooth_file,fwhm,brightness_threshold,use_median)
+             self.__smoothing__(anat_file,smooth_file,fwhm,brightness_threshold,use_median)
+        else:
+            print(">>>> Already performed")
 
     def functional_smoothing(self,subject,fwhm,brightness_threshold,use_median = True):
         """
@@ -187,7 +192,9 @@ class OpenFMRIAnalyzer(object):
                 smooth_file = os.path.join(directory, 'bold_smooth.nii.gz')
 
                 if not os.path.isfile(smooth_file):
-                    self.__smoothing__(self,bold_file,smooth_file,fwhm,brightness_threshold,use_median)
+                    self.__smoothing__(bold_file,smooth_file,fwhm,brightness_threshold,use_median)
+                else:
+                    print ">>>> Smoothing has already been performed for {}".format(directory)
 
     def functional_registration(self, subject):
         """
@@ -216,10 +223,10 @@ class OpenFMRIAnalyzer(object):
                     os.path.join(
                         reg_dir,
                         'highres2example_func.mat')):
-                    print "registration for {} already performed".format(directory)
+                    print ">>>> Registration has already been performed for {}".format(directory)
                     continue
 
-                print "working on {}".format(directory)
+                print ">>>> Working on {}".format(directory)
                 if not os.path.isdir(reg_dir):
                     os.mkdir(reg_dir)
                 else:
@@ -272,7 +279,7 @@ class OpenFMRIAnalyzer(object):
                         'example_func2standard.nii.gz'))
                 apply_warp.run()
 
-    def anatomical_registration(self, subject):
+    def anatomical_registration(self, subject, standard_image_name='MNI152_T1_2mm_brain.nii.gz' ):
         """
             Anatomical Registration
 
@@ -287,6 +294,7 @@ class OpenFMRIAnalyzer(object):
 
             Parameters
                 subject = Subject Dir object
+                standard_image_name = The anatomy reference image
 
         """
         print ">>> Anatomical registration"
@@ -297,21 +305,21 @@ class OpenFMRIAnalyzer(object):
         out_file = os.path.join(reg_dir, 'highres2standard.nii.gz')
         out_mat_file = os.path.join(reg_dir, 'highres2standard.mat')
 
-        standard_image = fsl.Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
+        standard_image = fsl.Info.standard_image(standard_image_name)
 
         if not os.path.isfile(out_mat_file):
-            print ">>> FLIRT"
+            print ">>>> FLIRT"
             os.mkdir(reg_dir)
             flirt = fsl.FLIRT(in_file=brain_image,
                               reference=standard_image,
                               out_file=out_file,
                               out_matrix_file=out_mat_file,
-                              cost='corratio',
-                              dof=12,
-                              searchr_x=[-90, 90],
-                              searchr_y=[-90, 90],
-                              searchr_z=[-90, 90],
-                              interp='trilinear')
+                              cost='corratio', # ('mutualinfo' or 'corratio' or 'normcorr' or 'normmi' or 'leastsq' or 'labeldiff' or 'bbr')
+                              dof=12, # number of transform degrees of freedom
+                              searchr_x=[-90, 90], # search angles along x-axis, in degrees
+                              searchr_y=[-90, 90], # search angles along y-axis, in degrees
+                              searchr_z=[-90, 90], # search angles along z-axis, in degrees
+                              interp='trilinear') # 'trilinear' or 'nearestneighbour' or 'sinc' or 'spline'
             flirt.run()
 
         anatomical_head = subject.anatomical_nii()
@@ -325,15 +333,15 @@ class OpenFMRIAnalyzer(object):
             'MNI152_T1_2mm_brain_mask_dil.nii.gz')
 
         if not os.path.isfile(output_fielf_coeff):
-            print ">>> FNIRT"
+            print ">>>> FNIRT"
             fnirt = fsl.FNIRT(warped_file=out_file,
                               in_file=anatomical_head,
-                              affine_file=out_mat_file,
-                              fieldcoeff_file=output_fielf_coeff,
-                              jacobian_file=output_jacobian,
-                              config_file='T1_2_MNI152_2mm',
-                              ref_file=standard_head,
-                              refmask_file=standard_mask)
+                              affine_file=out_mat_file, # Affine matrix to use
+                              fieldcoeff_file=output_fielf_coeff, # name of output file with field coefficients or true
+                              jacobian_file=output_jacobian, #  name of file for writing out the Jacobianof the field (for diagnostic or VBM purposes)
+                              config_file='T1_2_MNI152_2mm', # 'T1_2_MNI152_2mm' or 'FA_2_FMRIB58_1mm'
+                              ref_file=standard_head, # name of reference image
+                              refmask_file=standard_mask) # name of file with mask in reference space
             fnirt.run()
             cmd = 'fslview {} {} -t 0.5 '.format(standard_image, out_file)
             pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
@@ -365,6 +373,10 @@ class OpenFMRIAnalyzer(object):
                 out_basename = os.path.join(
                     subject.masks_dir(), run_name, 'seg')
 
+                # Fixing FAST bug
+                lastcwd = os.getcwd()
+                os.chdir(directory)
+
                 fast = fsl.FAST(in_files=bold_file,
                                 out_basename=out_basename,
                                 img_type=2,
@@ -377,6 +389,7 @@ class OpenFMRIAnalyzer(object):
                                 segments=True)
                 try:
                     result = fast.run()
+                    os.chdir(lastcwd)
                     gm_pve_file = result.outputs.partial_volume_files[0]
                 except:
                     gm_pve_file = '{}_pve_0.nii.gz'.format(out_basename)
@@ -405,6 +418,9 @@ class OpenFMRIAnalyzer(object):
 
         brain_image = subject.anatomical_nii("brain")
 
+        # Fixing FAST bug
+        lastcwd = os.getcwd()
+        os.chdir(subject.anatomical_dir())
         fast = fsl.FAST(
             in_files=brain_image,
             out_basename=os.path.join(
@@ -418,6 +434,7 @@ class OpenFMRIAnalyzer(object):
 
         try:
             result = fast.run()
+            os.chdir(lastcwd)
             gm_pve_file = result.outputs.partial_volume_files[1]
         except:
             gm_pve_file = os.path.join(
@@ -425,7 +442,6 @@ class OpenFMRIAnalyzer(object):
             gm_seg_file = os.path.join(
                 subject.masks_dir(), 'anatomy', 'seg_seg_1.nii.gz')
 
-            # TODO: bug in fast result output parsing!!!
         if False:
             cmd = 'fslview {} {} -l Red -t 0.1 -b 0,0.1'.format(
                 brain_image, gm_pve_file)
@@ -468,10 +484,13 @@ class OpenFMRIAnalyzer(object):
         restore_file = subject.anatomical_nii('restore')
 
         if not overwrite and os.path.isfile(restore_file):
-            print(">>>> Skipped")
+            print(">>>> Already performed")
             return anat_filename
 
         try:
+
+            self.__beforechange__(anat_filename,'restore')
+
             lastcwd = os.getcwd()
             os.chdir(subject.anatomical_dir())
             fast = fsl.FAST(in_files=brain_image,                            
@@ -486,23 +505,13 @@ class OpenFMRIAnalyzer(object):
 
             fast = fast.run()
             os.chdir(lastcwd)
-            # TODO need to remove temporary files created by this process
 
-            os.rename(
-                anat_filename,
-                anat_filename.replace(
-                    '.nii.gz',
-                    '_pre_restore.nii.gz'))
-            shutil.copy(fast.outputs.restored_image, anat_filename)
+            self.__afterchange__(anat_filename,fast.outputs.restored_image,'restore',True)
+
             return anat_filename
         except Exception as ex:
             print ex
-            os.rename(
-                anat_filename,
-                anat_filename.replace(
-                    '.nii.gz',
-                    '_pre_restore.nii.gz'))
-            shutil.copy(restore_file, anat_filename)
+            self.__afterchange__(anat_filename,restore_file,'restore',False)
             return anat_filename
 
     def extract_brain(self, subject, overwrite=False, f=0.5, g=-0.1, automatic_approval = False):
@@ -529,7 +538,7 @@ class OpenFMRIAnalyzer(object):
         brain_image = subject.anatomical_nii('brain')
 
         if not overwrite and os.path.isfile(brain_image):
-            print(">>>> Skipped")
+            print(">>>> Already performed")
             return brain_image
 
         input_image = subject.anatomical_nii()
@@ -577,7 +586,7 @@ class OpenFMRIAnalyzer(object):
             'brain.nii.gz'))
 
         return brain_image
-    
+
     def motion_correction(self, subject, merge_task_runs=False):
         """
             Motion Correction
@@ -613,7 +622,7 @@ class OpenFMRIAnalyzer(object):
                         directory,
                         'bold_mcf_intnorm.nii.gz') for directory in directories]
                 if all(map(lambda x: os.path.isfile(x), mcf_files)):
-                    print ">>> Motion Correction has already been performed"
+                    print ">>>> Motion Correction has already been performed"
                     continue
 
                 merge_dir = os.path.join(
@@ -672,8 +681,16 @@ class OpenFMRIAnalyzer(object):
                     input_file = os.path.join(directory, 'bold.nii.gz')
                     output_file = input_file.replace('.nii.gz', '_mcf.nii.gz')
 
-                    self.__motion_correct_file__(
-                        input_file, output_file, subject, directory)
+                    try:
+                        self.__beforechange__(input_file,'mcf')
+
+                        self.__motion_correct_file__(input_file, output_file, subject, directory)
+
+                        self.__afterchange__(input_file,output_file,'mcf',True)
+
+                    except Exception as ex:
+                        print ex
+                        self.__afterchange__(input_file,output_file,'mcf',False)
 
     def __smoothing__(self,in_file,out_file,fwhm,brightness_threshold,use_median = True):
 
@@ -684,10 +701,15 @@ class OpenFMRIAnalyzer(object):
         sus.inputs.fwhm = fwhm
         sus.inputs.use_median = use_median
 
+        print ">>>> Working on {}".format(in_file)
+
         try:
+            self.__beforechange__(in_file,'smooth')
             result = sus.run()
+            self.__afterchange__(in_file,out_file,'smooth',True)
         except Exception as ex:
             print ex
+            self.__afterchange__(in_file,out_file,'smooth',False)
             raise ex
 
     def __motion_correct_file__(
@@ -699,9 +721,10 @@ class OpenFMRIAnalyzer(object):
             use_example_pp=False):
         # Check whether motion correction has already been completed
         if os.path.isfile(output_file):
+            print ">>>> MC has already been performed for {}".format(directory)
             return
 
-        print "{}".format(input_file)
+        print ">>>> Working on {}".format(input_file)
 
         if use_example_pp:
             pp.preproc.inputs.inputspec.func = input_file
@@ -772,7 +795,21 @@ class OpenFMRIAnalyzer(object):
             pmp.inputs.plot_type = 'translations'
             pmp.run()
 
+    def __beforechange__(self,input_file,ext):
+         shutil.copy(input_file,input_file.replace('.nii.gz','_pre_{}.nii.gz'.format(ext)))
 
+    def __afterchange__(self,input_file,output_file,ext,success):
+        backup = input_file.replace('.nii.gz','_pre_{}.nii.gz'.format(ext))
+        if(success):
+            shutil.copy(output_file,input_file)
+            #os.remove(output_file) - We don't remove this because that's how we check if we did the process already
+            os.remove(backup)
+        else:
+            shutil.copy(backup,input_file)
+            if(os.exists(output_file)):
+                os.remove(output_file)
+            if(os.exists(backup)):
+                os.remove(backup)
 
 
 def test():

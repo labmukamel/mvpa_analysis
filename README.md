@@ -271,7 +271,7 @@ Parameters
 ###### Anatomical Registration
 
 ```python
-def anatomical_registration(subject):
+def anatomical_registration(subject,brain_image,standard_image_name='MNI152_T1_2mm_brain.nii.gz'):
 ```
 
 1) Runs FLIRT on the brain extracted anatomy image with MNI152_T1_2mm_brain.nii.gz as reference
@@ -288,7 +288,8 @@ Outputs:
 Parameters
 
  - subject = Subject Dir object
-
+ - standard_image_name = The anatomy reference image          
+                
 ###### Functional Segmentation
 
 ```python
