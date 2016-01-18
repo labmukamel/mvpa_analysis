@@ -1,19 +1,19 @@
 # 	name of reference image
---ref=/usr/share/fsl/5.0/data/standard/MNI152_T1_2mm.nii.gz
+--ref=/usr/local/lib/fsl-5.0.7/data/standard/MNI152_T1_2mm.nii.gz
 # 	name of input image
---in=/media/lior/DAE86CF0E86CCBF7/Data/data/EPITest/sub001/anatomy/highres001.nii.gz
+--in=/home/rack-hezi-03/home/roigilro/fMRI/Data/Self-Other/sub011/anatomy/highres001.nii.gz
 # 	name of file containing affine transform
---aff=/media/lior/DAE86CF0E86CCBF7/Data/data/EPITest/sub001/anatomy/reg/highres2standard.mat
+--aff=/home/rack-hezi-03/home/roigilro/fMRI/Data/Self-Other/sub011/anatomy/reg/highres2standard.mat
 # 	name of output file with field coefficients
---cout=/media/lior/DAE86CF0E86CCBF7/Data/data/EPITest/sub001/anatomy/reg/highres2standard_warp.nii.gz
+--cout=/home/rack-hezi-03/home/roigilro/fMRI/Data/Self-Other/sub011/anatomy/reg/highres2standard_warp.nii.gz
 # 	name of output image
---iout=/media/lior/DAE86CF0E86CCBF7/Data/data/EPITest/sub001/anatomy/reg/highres2standard.nii.gz
+--iout=/home/rack-hezi-03/home/roigilro/fMRI/Data/Self-Other/sub011/anatomy/reg/highres2standard.nii.gz
 # 	name of file for writing out the Jacobian of the field (for diagnostic or VBM purposes)
---jout=/media/lior/DAE86CF0E86CCBF7/Data/data/EPITest/sub001/anatomy/reg/highres2highres_jac
+--jout=/home/rack-hezi-03/home/roigilro/fMRI/Data/Self-Other/sub011/anatomy/reg/highres2highres_jac
 # Name of log-file
---logout=/home/lior/PycharmProjects/mvpa_analysis/Roee/highres001_log.txt
+--logout=/specific/a/home/cc/students/csguests/roigilro/PycharmProjects/mvpa_analysis/Roee/highres001_log.txt
 # name of file with mask in reference space
---refmask=/usr/share/fsl/5.0/data/standard/MNI152_T1_2mm_brain_mask_dil.nii.gz
+--refmask=/usr/local/lib/fsl-5.0.7/data/standard/MNI152_T1_2mm_brain_mask_dil.nii.gz
 # If =1, use implicit masking based on value in --ref image. Default =1
 --imprefm=1
 # If =1, use implicit masking based on value in --in image, Default =1
