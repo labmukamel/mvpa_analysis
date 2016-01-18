@@ -37,7 +37,7 @@ for name in subject_names:
     # Motion
     analyzer.motion_correction(subject)
 
-    # Slice‐time correction - test
+    # Slice‐time correction - test 2
     analyzer.slice_time_correction(subject)
 
     # Spatial  filtering  ( Smoothing)
