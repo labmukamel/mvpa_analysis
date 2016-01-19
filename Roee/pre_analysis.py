@@ -1,7 +1,7 @@
 ﻿import sys
 import os
 import re
-from OpenFMRIAnalyzer import OpenFMRIAnalyzer
+from OpenFMRIAnalyzer import PreProcessing
 from OpenFMRIData import OpenFMRIData
 
 #subname    	= sys.argv[1]
@@ -30,33 +30,33 @@ for name in subject_names:
     subject_code = jsonmaping[name]
     # just load existing data structure
     # subject = op.load_subject_dir(subname= name, subcode= subject_code)
-    analyzer = OpenFMRIAnalyzer(op,[subject])
+    preprocess = PreProcessing(op,[subject])
     # Brain Extraction and bias field estimation
     print "Started Analysis:{}".format(subject)
-    brain_image = analyzer.extract_brain(subject,automatic_approval=True)
-    anat_image = analyzer.estimate_bias_field(subject, brain_image)
+    brain_image = preprocess.extract_brain(subject,automatic_approval=True)
+    anat_image = preprocess.estimate_bias_field(subject, brain_image)
 
     # Motion
-    analyzer.motion_correction(subject)
+    preprocess.motion_correction(subject)
 
     # Slice‐time correction - test 2
-    # analyzer.slice_time_correction(subject)
+    # preprocess.slice_time_correction(subject)
 
     # Spatial  filtering  ( Smoothing)
-    # analyzer.anatomical_smoothing(subject,8.0,2000.0)
-    # analyzer.functional_smoothing(subject,kwargs['fwhm'],kwargs['brightness_threshold'])
+    # preprocess.anatomical_smoothing(subject,8.0,2000.0)
+    # preprocess.functional_smoothing(subject,kwargs['fwhm'],kwargs['brightness_threshold'])
 
     # Temporal  filtering (High Pass)
 
     # Anatomical Registration
-    # analyzer.anatomical_registration(subject)
+    # preprocess.anatomical_registration(subject)
 
     # Functional Registration
-    # analyzer.functional_registration(subject)
+    # preprocess.functional_registration(subject)
 
     # Segmentation
     # if 'func_seg' in kwargs:
-    #     analyzer.functional_segmentation(subject)
+    #     preprocess.functional_segmentation(subject)
     # else:
-    #     analyzer.segmentation(subject)
-    #     analyzer.generate_functional_gm_masks(subject)
+    #     preprocess.segmentation(subject)
+    #     preprocess.generate_functional_gm_masks(subject)
