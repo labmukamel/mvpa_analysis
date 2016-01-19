@@ -12,7 +12,7 @@ from OpenFMRIData import OpenFMRIData
 from nipype.interfaces import fsl
 
 
-class OpenFMRIAnalyzer(object):
+class PreProcessing(object):
 
     def __init__(self, fmri_data, subjects):
         self._fmri_data = fmri_data
@@ -519,7 +519,7 @@ class OpenFMRIAnalyzer(object):
             self.__afterchange__(anat_filename,restore_file,'restore',False)
             return anat_filename
 
-    def extract_brain(self, subject, overwrite=False, f=0.5, g=-0.1, automatic_approval = False):
+    def extract_brain(self, subject, overwrite=False, f=0.3, g=-0.1, automatic_approval = False):
         """
             Brain Extraction
 
