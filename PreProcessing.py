@@ -8,6 +8,8 @@ import signal
 import pre_proc_fromexample as pp
 from SubjectDir import SubjectDir
 from OpenFMRIData import OpenFMRIData
+import nibabel as nib
+import numpy as np
 
 from nipype.interfaces import fsl
 
@@ -63,8 +65,6 @@ class PreProcessing(object):
                 self.anatomical_smoothing(subject,kwargs['fwhm'],kwargs['brightness_threshold'])
                 self.functional_smoothing(subject,kwargs['fwhm'],kwargs['brightness_threshold'])
 
-        # Temporal  filtering (High Pass)
-
         # Anatomical Registration
         for subject in self._subjects_list:
             self.anatomical_registration(subject)
@@ -101,7 +101,29 @@ class PreProcessing(object):
                     subject.masks_dir(), run_name, mask_name)
                 gm2func_mask.run()
 
-    def slice_time_correction(self,subject,time_repetition = 2):
+    # Temporal  filtering (High Pass)
+    def highpassfilter(self, subject):
+
+        for task, directories in subject.dir_tree('functional').iteritems():
+            for directory in directories:
+
+                bold_file = os.path.join(directory, 'bold_mcf.nii.gz')
+                hp_file = os.path.join(directory, 'bold_mcf_hp.nii.gz')
+
+                if os.path.isfile(hp_file):
+                    print ">>>> High Pass Filtering has already been performed for {}".format(directory)
+                    continue
+
+                filter = fsl.maths.TemporalFilter()
+                filter.inputs.in_file = bold_file
+                filter.inputs.out_file = hp_file
+                filter.inputs.highpass_sigma = 28  #in volumes
+                #TODO change to hardcoded sigma
+
+                print ">>>> High Pass Filtering {}".format(bold_file)
+                filter.run()
+
+    def slice_time_correction(self,subject,time_repetition):
         """
             Slice Time Correction
 
@@ -118,8 +140,8 @@ class PreProcessing(object):
         for task, directories in subject.dir_tree('functional').iteritems():
             for directory in directories:
 
-                bold_file = os.path.join(directory, 'bold.nii.gz')
-                stc_file = os.path.join(directory, 'bold_stc.nii.gz')
+                bold_file = os.path.join(directory, 'bold_mcf_hp.nii.gz')
+                stc_file = os.path.join(directory, 'bold_mcf_hp_stc.nii.gz')
 
                 if os.path.isfile(stc_file):
                     print ">>>> STC has already been performed for {}".format(directory)
@@ -188,8 +210,8 @@ class PreProcessing(object):
         for task, directories in subject.dir_tree('functional').iteritems():
             for directory in directories:
 
-                bold_file = os.path.join(directory, 'bold.nii.gz')
-                smooth_file = os.path.join(directory, 'bold_smooth.nii.gz')
+                bold_file = os.path.join(directory, 'bold_mcf_hp_stc.nii.gz')
+                smooth_file = os.path.join(directory, 'bold_mcf_hp_stc_smooth_{}mm.nii.gz'.format(fwhm))
 
                 if not os.path.isfile(smooth_file):
                     self.__smoothing__(bold_file,smooth_file,fwhm,brightness_threshold,use_median)
