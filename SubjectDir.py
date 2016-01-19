@@ -2,9 +2,8 @@
 
 import os
 from glob import glob
-
+from collections import defaultdict
 import pandas as pd
-
 
 class SubjectDir(object):
     def __init__(self, subject_code, path, raw_path=None, task_order=None, task_mapping=None, createbehavdict=None):
@@ -33,7 +32,7 @@ class SubjectDir(object):
                          'model': 'model',
                          'masks': 'masks',
                          'behav': 'behav'}
-        self._modelfiles =
+        self._modelfiles = self.loadmodelfiles()
 
         isValid = self.__isValid__(self._path)
 
@@ -53,7 +52,7 @@ class SubjectDir(object):
 
     def __isValid__(self, path):
 
-        if(not os.path.isdir(self._path)):
+        if (not os.path.isdir(self._path)):
             return False
 
         # Must have all the relevant folders(BOLD,anatomy,model,masks,behav)
@@ -67,7 +66,8 @@ class SubjectDir(object):
             return False
 
         # Checks that there exists a bold file in each task directory in each functional directory
-        if not all(os.path.exists(os.path.join(bold,'bold.nii.gz')) for bold in [os.path.join(self.functional_dir(), taskrun) for taskrun in self._task_order]):
+        if not all(os.path.exists(os.path.join(bold, 'bold.nii.gz')) for bold in
+                   [os.path.join(self.functional_dir(), taskrun) for taskrun in self._task_order]):
             print("Openfmri directory doesn't have all the bold nii files")
             return False
 
@@ -123,19 +123,19 @@ class SubjectDir(object):
         onset_dirs = ["model{:0>3d}/onsets".format(directory) for directory in range(1, num_models)]
 
         dir_tree = {
-        # In the main path we create functional, anatomical, model, masks folders
+            # In the main path we create functional, anatomical, model, masks folders
             self._path: self._subdirs.values(),
 
-        # Create the task order folders inside the functional directory - BOLD/taskxxx_runxxx
+            # Create the task order folders inside the functional directory - BOLD/taskxxx_runxxx
             self.functional_dir(): self._task_order,
 
-        # Create modelxxx/onsets/taskxxx
+            # Create modelxxx/onsets/taskxxx
             self.model_dir(): [os.path.join(onset_dir, task) for onset_dir in onset_dirs for task in self._task_order],
 
-        # Create a different mask directory of each task and run Mask/anatomytaskxxx_runxxx
+            # Create a different mask directory of each task and run Mask/anatomytaskxxx_runxxx
             self.masks_dir(): ['anatomy'] + self._task_order,
 
-        # Create the task order folders inside the behavioural directory - behav/taskxxx_runxxx
+            # Create the task order folders inside the behavioural directory - behav/taskxxx_runxxx
             self.behavioural_dir(): self._task_order,
 
         }
@@ -148,11 +148,10 @@ class SubjectDir(object):
 
         self.__dcm_to_nii__()
 
-        if(self._create_behav_dict != None and hasattr(self._create_behav_dict['func'], '__call__')):
+        if (self._create_behav_dict != None and hasattr(self._create_behav_dict['func'], '__call__')):
             func = self._create_behav_dict['func']
             behav = self._create_behav_dict['behav']
-            func(self,onset_dirs,behav)
-
+            func(self, onset_dirs, behav)
 
     def __dcm_convert__(self, source_directory, target_directory, target_filename, rename_prefix, erase=False):
         cmd = "dcm2nii -o {} {} > /dev/null".format(target_directory, source_directory)
@@ -209,13 +208,12 @@ class SubjectDir(object):
 
     def anatomical_dir(self):
         return os.path.join(self._path, self._subdirs['anatomical'])
-    
-    def anatomical_nii(self, ext = ''):
-        if(ext != ''):
-            ext = '_'+ext
+
+    def anatomical_nii(self, ext=''):
+        if (ext != ''):
+            ext = '_' + ext
 
         return os.path.join(self.anatomical_dir(), 'highres001{}.nii.gz'.format(ext))
-
 
     def model_dir(self):
         return os.path.join(self._path, self._subdirs['model'])
@@ -228,6 +226,23 @@ class SubjectDir(object):
 
     def subcode(self):
         return self._subject_code
+
+    def loadmodelfiles(self):
+        evfiles = []
+        models_dir = os.path.join(self._path, 'model')
+        allmodels = os.listdir(models_dir)
+        for model in allmodels:  # loop on models
+            run_dirs = os.listdir(os.path.join(self._path, 'model', model, 'onsets'))
+            for run in run_dirs:
+                run_dir = os.path.join(self._path, 'model', model, 'onsets', run)
+                evcondfils = glob(os.path.join(run_dir, "*.txt"))
+                if not evcondfils:
+                    continue
+                else:
+                    evsperrun = [model,run,evcondfils]
+                    evfiles.append(evsperrun)
+
+        return evfiles
 
 
 def test():
