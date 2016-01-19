@@ -202,6 +202,35 @@ class OpenFMRIData(object):
         # Returns- subjectdir object that contains the openfmri structure
         return SubjectDir(subject_code, self.__subcode_to_dir_format__(subject_code), raw_dir, taskOrder, self._task_mapping)
 
+    def create_subject_evs(self, subject_dir_name, mode='basic'):
+        behav_dir = os.path.join(self._study_dir, subject_dir_name, 'behav')
+        run_dirs = os.listdir(behav_dir)
+        for run in run_dirs:
+            behavdata_file = behav_dir+'/'+run+'/behavdata.txt'
+            if mode == 'basic':
+                output_dir = os.path.join(self._study_dir, subject_dir_name, 'model/model001/onsets',run)
+                self._create_evs_file_basic(behavdata_file, output_dir)
+            elif mode == 'trial_base':
+                pass
+
+    def _create_evs_file_basic(self, behavdata_file, output_dir, duration=2):
+        df = pd.read_csv(behavdata_file, delim_whitespace=True,header='infer')
+        if 'Duration' not in df:
+            df['Duration'] = pd.Series(duration*np.ones(len(df.index), dtype=np.float))
+        conds = df.loc[~df['Stimulus'].duplicated()]['Stimulus']
+        cond_idx = 1
+        for cond in conds:
+            cond_df = df[df.Stimulus == cond][['Onset', 'Duration', 'Rsponse']]
+            output_file = output_dir+'/cond'+'%.3d'%(cond_idx)+'.txt'
+            cond_df.to_csv(output_file, sep='\t', header=False, index=False)
+            cond_idx = cond_idx+1
+
+    def collapse_conds(self, behavdata_file, conds2collapse):
+        pass
+
+    def trial_conds(self):
+        pass
+
 def test():
     o = OpenFMRIData('/home/user/data', '/home/user/data/raw', 'LP')
 
