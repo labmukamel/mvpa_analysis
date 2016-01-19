@@ -33,6 +33,7 @@ class SubjectDir(object):
                          'model': 'model',
                          'masks': 'masks',
                          'behav': 'behav'}
+        self._modelfiles =
 
         isValid = self.__isValid__(self._path)
 
