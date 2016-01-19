@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os
 from OpenFMRIData import OpenFMRIData
-from OpenFMRIAnalyzer import OpenFMRIAnalyzer
+from PreProcessing import OpenFMRIAnalyzer
 from subject_searchlight import run_searchlight
 
 from make_ds import make_ds
