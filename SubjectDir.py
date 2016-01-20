@@ -229,18 +229,23 @@ class SubjectDir(object):
 
     def loadmodelfiles(self):
         evfiles = []
+        # if this is the first time that subject is created, there aren't any ev's to load
+
         models_dir = os.path.join(self._path, 'model')
-        allmodels = os.listdir(models_dir)
-        for model in allmodels:  # loop on models
-            run_dirs = os.listdir(os.path.join(self._path, 'model', model, 'onsets'))
-            for run in run_dirs:
-                run_dir = os.path.join(self._path, 'model', model, 'onsets', run)
-                evcondfils = glob(os.path.join(run_dir, "*.txt"))
-                if not evcondfils:
-                    continue
-                else:
-                    evsperrun = [model,run,evcondfils]
-                    evfiles.append(evsperrun)
+        if not os.path.exists(models_dir):
+            pass
+        else:
+            allmodels = os.listdir(models_dir)
+            for model in allmodels:  # loop on models
+                run_dirs = os.listdir(os.path.join(self._path, 'model', model, 'onsets'))
+                for run in run_dirs:
+                    run_dir = os.path.join(self._path, 'model', model, 'onsets', run)
+                    evcondfils = glob(os.path.join(run_dir, "*.txt"))
+                    if not evcondfils:
+                        continue
+                    else:
+                        evsperrun = [model,run,evcondfils]
+                        evfiles.append(evsperrun)
 
         return evfiles
 

@@ -210,13 +210,34 @@ class OpenFMRIData(object):
             behavdata_file = behav_dir+'/'+run+'/behavdata.txt'
             if mode == 'basic':
                 output_dir = os.path.join(self._study_dir, subject_dir_name, 'model/model001/onsets',run)
-                self._create_evs_file_basic(behavdata_file, output_dir)
+                self._create_evs_file_basic(behavdata_file,output_dir,run)
             elif mode == 'trial_base':
+                output_dir = os.path.join(self._study_dir, subject_dir_name, 'model/model002/onsets',run)
+                self._create_evs_file_sep_ev_per_trial(behavdata_file,output_dir,run)
+            elif mode == 'collapseconds':
                 pass
 
-    def _create_evs_file_basic(self, behavdata_file, output_dir, duration=2):
+    def _create_evs_file_basic(self, behavdata_file, output_dir, run_dir, duration=2):
+        #TODO: remove this part that deletes current text files in the directory
+        existing_cond_files = glob(os.path.join(output_dir,'*.txt'))
+        for f in existing_cond_files:
+            os.remove(f)
         df = pd.read_csv(behavdata_file, delim_whitespace=True,header='infer')
-        #TODO: remove this part that deletes curernt text files - clean up routine
+        if 'Duration' not in df:
+            df['Duration'] = pd.Series(duration*np.ones(len(df.index), dtype=np.float))
+        conds = df.loc[~df['Stimulus'].duplicated()]['Stimulus']
+        cond_idx = 1
+        for cond in conds:
+            cond_df = df[df.Stimulus == cond][['Onset', 'Duration', 'Response']]
+            rundirnum = int(run_dir[11:14])
+            file_name = cond + '.'  'run%.3d'%(rundirnum) + '.txt'
+            output_file = os.path.join(output_dir,file_name)
+            cond_df.to_csv(output_file, sep='\t', header=False, index=False)
+            cond_idx = cond_idx+1
+
+    def _create_evs_file_sep_ev_per_trial(self, behavdata_file, output_dir, run_dir, duration=2):
+        df = pd.read_csv(behavdata_file, delim_whitespace=True,header='infer')
+        #TODO: remove this part that deletes current text files in the directory
         existing_cond_files = glob(os.path.join(output_dir,'*.txt'))
         for f in existing_cond_files:
             os.remove(f)
@@ -226,16 +247,16 @@ class OpenFMRIData(object):
         cond_idx = 1
         for cond in conds:
             cond_df = df[df.Stimulus == cond][['Onset', 'Duration', 'Response']]
-            file_name = cond + '.'  'run%.3d'%(cond_idx) + '.txt'
-            output_file = os.path.join(output_dir,file_name)
-            cond_df.to_csv(output_file, sep='\t', header=False, index=False)
-            cond_idx = cond_idx+1
+            for row in range(0,cond_df.__len__()-1):
+                rundirnum = int(run_dir[11:14])
+                file_name = cond + str(row) + '.'  'run%.3d'%(rundirnum) + '.txt'
+                output_file = os.path.join(output_dir,file_name)
+                cond_df.iloc([[row]]).to_csv(output_file, sep='\t', header=False, index=False)
+                cond_idx = cond_idx+1
 
     def collapse_conds(self, behavdata_file, conds2collapse):
         pass
 
-    def trial_conds(self):
-        pass
 
 def test():
     o = OpenFMRIData('/home/user/data', '/home/user/data/raw', 'LP')

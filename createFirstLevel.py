@@ -21,7 +21,7 @@ class createFirstLevel:
 
             s.inputs.event_files = model[2]
             s.inputs.input_units = 'secs'
-            s.inputs.functional_runs = os.path.join(subject._path,'BOLD',model[1], 'bold_mcf.nii.gz')
+            s.inputs.functional_runs = os.path.join(subject._path,'BOLD',model[1], 'bold_mcf_hp.nii.gz')
             # use nibable to get the tr of from the .nii file
             s.inputs.time_repetition = trtimeinsec
             s.inputs.high_pass_filter_cutoff = 128.

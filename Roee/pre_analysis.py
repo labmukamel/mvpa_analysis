@@ -4,10 +4,8 @@ import re
 from PreProcessing import PreProcessing
 from OpenFMRIData import OpenFMRIData
 from createFirstLevel import createFirstLevel
-#subname    	= sys.argv[1]
 
 # data_dir   	= os.environ.get('DATA_DIR') or '/home/rack-hezi-03/home/roigilro/fMRI/Data/'
-# data_dir   	= os.environ.get('DATA_DIR') or '/media/roee/fMRI/Data/'
 data_dir   	=  '/media/roee/fMRI/Data/'
 
 # study_name 	= os.environ.get('STUDY_NAME') or 'Self-Other'
@@ -17,27 +15,46 @@ raw_dir 	= os.path.join(data_dir,'raw')
 
 op = OpenFMRIData(data_dir, raw_dir,study_name)
 
-#subject_names = ['MoCa'] # Specific subject names
 subject_names = op.get_subject_names() # All subjects
 
+# create open fMRI data structure and conver .dcms to .nii
 for name in subject_names:
-    # if we want to create new data for analysis - test
-    # subject_dir = op.create_subject_dir(name)
-    # create new data (convert dicom to nii etc.creat
+    x=2
+    # subject_dir = op.create_subject_dir(name, overwrite=True)
+
+#TODO: agree on a standard to include open behvadata.txt files in raw directory structure
+# copy over the behavdata.txt files to correct place in open-fmri data struc created above:
+# ~/sub001/behav/tak00X_run00X/behavdata.txt
+
+for name in subject_names:
     subject = op.load_subject_dir(subname=name)
     subject_dir_name = subject._path
     op.create_subject_evs(subject_dir_name= subject_dir_name , mode = 'basic')
-    # - Creates the new directories only when given subname!
-    # jsonmaping = op.mapping_json()
-    # subject_code = jsonmaping[name]
-    # just load existing data structure
-    # subject = op.load_subject_dir(subname= name, subcode= subject_code)
-    # preprocess = PreProcessing(op,[subject])
+    op.create_subject_evs(subject_dir_name= subject_dir_name , mode = 'trial_base')
 
-    ### CREATE FIRST LEVEL
+
+# run preprocessing and first levle naalysis
+for name in subject_names:
+    subject = op.load_subject_dir(subname=name)
+    #  if we want to create new data for analysis
+    # subject_dir = op.create_subject_dir(name)
+    #  if we want to load new data for analysis
+    # structural:
+    subject_dir = subject._path
+    preproc = PreProcessing(op,[subject])
+    brain_image = preproc.extract_brain(subject,automatic_approval = True)
+    preproc.estimate_bias_field(subject, brain_image, overwrite=True)
+
+    #functional
+    # preproc.motion_correction(subject)
+    # preproc.anatomical_registration(subject)
+    # preproc.functional_registration(subject)
+    # preproc.highpassfilter(subject,highpass_freq=2,)
+    #
+    #
+    # ### CREATE FIRST LEVEL
     # first_level = createFirstLevel()
-    # set the tr
-    # trtimeinsec = 2.5
+    # trtimeinsec = 2.5 # set the tr
     # first_level.runglmperun(subject,trtimeinsec)
     #### END CREATE FIRST LEVEL GLM PER SUB
 
