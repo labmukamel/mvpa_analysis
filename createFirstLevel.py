@@ -41,7 +41,12 @@ class createFirstLevel:
             level1design.inputs.bases = {'dgamma':{'derivs': False}}
             level1design.inputs.session_info = sessionInfo
             level1design.inputs.model_serial_correlations = True
+            #TODO: add contrasts to level 1 design so that I have just condition vs rest for each ev
+            #TODO: Look into changign this to FILM instead of FEAT - this also has the option of setting output directory
+            # http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FEAT/UserGuide#Contrasts
+            #http://nipy.org/nipype/interfaces/generated/nipype.interfaces.fsl.model.html#filmgls
             resLevel = level1design.run()
+
 
             featModel = FEATModel()
             featModel.inputs.fsf_file = resLevel.outputs.fsf_files
