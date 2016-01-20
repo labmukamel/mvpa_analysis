@@ -8,7 +8,7 @@ from distutils import dir_util
 
 class createFirstLevel:
 
-    def runglmperun(self, subject,trtimeinsec):
+    def runglmperun(self, subject, trtimeinsec):
         s = SpecifyModel()
         # loop on all runs and models within each run
         modelfiles = subject._modelfiles

@@ -2,7 +2,7 @@
 import sys
 import os
 
-from OpenFMRIAnalyzer import OpenFMRIAnalyzer
+from PreProcessing import OpenFMRIAnalyzer
 from OpenFMRIData import OpenFMRIData
 
 #subname    	= sys.argv[1]

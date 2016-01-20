@@ -101,14 +101,14 @@ class PreProcessing(object):
                     subject.masks_dir(), run_name, mask_name)
                 gm2func_mask.run()
 
-    # Temporal  filtering (High Pass)
+
     def highpassfilter(self, subject):
 
         for task, directories in subject.dir_tree('functional').iteritems():
             for directory in directories:
 
-                bold_file = os.path.join(directory, 'bold_mcf.nii.gz')
-                hp_file = os.path.join(directory, 'bold_mcf_hp.nii.gz')
+                bold_file = os.path.join(directory, 'bold_mask_mcf.nii.gz')
+                hp_file = bold_file.replace('.nii.gz', '_hp.nii.gz')
 
                 if os.path.isfile(hp_file):
                     print ">>>> High Pass Filtering has already been performed for {}".format(directory)
@@ -140,8 +140,8 @@ class PreProcessing(object):
         for task, directories in subject.dir_tree('functional').iteritems():
             for directory in directories:
 
-                bold_file = os.path.join(directory, 'bold_mcf_hp.nii.gz')
-                stc_file = os.path.join(directory, 'bold_mcf_hp_stc.nii.gz')
+                bold_file = os.path.join(directory, 'bold_mask_mcf_hp.nii.gz')
+                stc_file = bold_file.replace('.nii.gz', '_stc.nii.gz')
 
                 if os.path.isfile(stc_file):
                     print ">>>> STC has already been performed for {}".format(directory)
@@ -614,6 +614,32 @@ class PreProcessing(object):
 
         return brain_image
 
+    def applymask_bold(self, subject):
+        """
+        Applying brain.nii mask on all functional files to treat only brain area in the furthcoming analyses
+
+        """
+        mask_file = os.path.join(subject.masks_dir(),'anatomy', 'brain.nii.gz')
+        for task, directories in subject.dir_tree('functional').iteritems():
+            for directory in sorted(directories):
+                bold_file = os.path.join(directory, 'bold.nii.gz')
+                masked_file = bold_file.replace('.nii.gz', '_mask.nii.gz')
+
+                if os.path.isfile(masked_file):
+                    print ">>>> Masking has been already been performed for {}".format(directory)
+                    continue
+
+                mask = fsl.maths.ApplyMask()
+                mask.inputs.in_file = bold_file
+                mask.inputs.mask_file = mask_file
+                mask.inputs.out_file = masked_file
+                mask.run()
+
+
+
+
+
+
     def motion_correction(self, subject, merge_task_runs=False):
         """
             Motion Correction
@@ -706,7 +732,7 @@ class PreProcessing(object):
             else:
                 # No need to merge the files..
                 for directory in sorted(directories):
-                    input_file = os.path.join(directory, 'bold.nii.gz')
+                    input_file = os.path.join(directory, 'bold_mask.nii.gz')
                     output_file = input_file.replace('.nii.gz', '_mcf.nii.gz')
 
                     if os.path.isfile(output_file):
