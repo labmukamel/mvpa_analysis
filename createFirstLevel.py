@@ -4,6 +4,7 @@ from nipype.interfaces.fsl.model import Level1Design, FEATModel
 import nipype.interfaces.fsl as fsl
 import os
 from glob import glob
+from distutils import dir_util
 
 class createFirstLevel:
 
@@ -13,6 +14,11 @@ class createFirstLevel:
         modelfiles = subject._modelfiles
 
         for model in modelfiles:
+            # Make directory results to store the results of the model
+            results_dir = os.path.join(subject._path,'model',model[0],'results',model[1])
+            dir_util.mkpath(results_dir)
+            os.chdir(results_dir)
+
             s.inputs.event_files = model[2]
             s.inputs.input_units = 'secs'
             s.inputs.functional_runs = os.path.join(subject._path,'BOLD',model[1], 'bold_mcf.nii.gz')
@@ -26,6 +32,7 @@ class createFirstLevel:
             #s.inputs.subject_info = None
 
             res = s.run()
+            res.runtime.cwd
             print ">>>> preparing evs for model " + model[1] + "and run " + model[0]
             sessionInfo = res.outputs.session_info
 
