@@ -21,7 +21,7 @@ op = OpenFMRIData(data_dir, raw_dir,study_name)
 subject_names = op.get_subject_names() # All subjects
 
 for name in subject_names:
-    # if we want to create new data for analysis
+    # if we want to create new data for analysis - test
     # subject_dir = op.create_subject_dir(name)
     # create new data (convert dicom to nii etc.creat
     subject = op.load_subject_dir(subname=name)
