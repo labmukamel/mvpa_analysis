@@ -3,6 +3,7 @@
 import os
 import json
 import re
+import pandas as pd
 
 from glob import glob
 from SubjectDir import SubjectDir
@@ -215,13 +216,18 @@ class OpenFMRIData(object):
 
     def _create_evs_file_basic(self, behavdata_file, output_dir, duration=2):
         df = pd.read_csv(behavdata_file, delim_whitespace=True,header='infer')
+        #TODO: remove this part that deletes curernt text files - clean up routine
+        existing_cond_files = glob(os.path.join(output_dir,'*.txt'))
+        for f in existing_cond_files:
+            os.remove(f)
         if 'Duration' not in df:
             df['Duration'] = pd.Series(duration*np.ones(len(df.index), dtype=np.float))
         conds = df.loc[~df['Stimulus'].duplicated()]['Stimulus']
         cond_idx = 1
         for cond in conds:
-            cond_df = df[df.Stimulus == cond][['Onset', 'Duration', 'Rsponse']]
-            output_file = output_dir+'/cond'+'%.3d'%(cond_idx)+'.txt'
+            cond_df = df[df.Stimulus == cond][['Onset', 'Duration', 'Response']]
+            file_name = cond + '.'  'run%.3d'%(cond_idx) + '.txt'
+            output_file = os.path.join(output_dir,file_name)
             cond_df.to_csv(output_file, sep='\t', header=False, index=False)
             cond_idx = cond_idx+1
 

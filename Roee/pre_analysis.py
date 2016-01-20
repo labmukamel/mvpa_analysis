@@ -25,26 +25,28 @@ for name in subject_names:
     # subject_dir = op.create_subject_dir(name)
     # create new data (convert dicom to nii etc.creat
     subject = op.load_subject_dir(subname=name)
+    subject_dir_name = subject._path
+    op.create_subject_evs(subject_dir_name= subject_dir_name , mode = 'basic')
     # - Creates the new directories only when given subname!
-    jsonmaping = op.mapping_json()
-    subject_code = jsonmaping[name]
+    # jsonmaping = op.mapping_json()
+    # subject_code = jsonmaping[name]
     # just load existing data structure
     # subject = op.load_subject_dir(subname= name, subcode= subject_code)
-    preprocess = PreProcessing(op,[subject])
+    # preprocess = PreProcessing(op,[subject])
 
     ### CREATE FIRST LEVEL
-    first_level = createFirstLevel()
+    # first_level = createFirstLevel()
     # set the tr
-    trtimeinsec = 2.5
-    first_level.runglmperun(subject,trtimeinsec)
+    # trtimeinsec = 2.5
+    # first_level.runglmperun(subject,trtimeinsec)
     #### END CREATE FIRST LEVEL GLM PER SUB
 
     # Brain Extraction and bias field estimation
-    print "Started Analysis:{}".format(subject)
-    brain_image = preprocess.extract_brain(subject,automatic_approval=True)
-    anat_image = preprocess.estimate_bias_field(subject, brain_image)
+    # print "Started Analysis:{}".format(subject)
+    # brain_image = preprocess.extract_brain(subject,automatic_approval=True)
+    # anat_image = preprocess.estimate_bias_field(subject, brain_image)
     # Motion
-    preprocess.motion_correction(subject)
+    # preprocess.motion_correction(subject)
 
     # Slice‐time correction - test 2
     # preprocess.slice_time_correction(subject)
