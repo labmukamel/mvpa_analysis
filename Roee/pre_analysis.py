@@ -3,7 +3,7 @@ import os
 import re
 from PreProcessing import PreProcessing
 from OpenFMRIData import OpenFMRIData
-
+from createFirstLevel import createFirstLevel
 #subname    	= sys.argv[1]
 
 # data_dir   	= os.environ.get('DATA_DIR') or '/home/rack-hezi-03/home/roigilro/fMRI/Data/'
@@ -31,11 +31,18 @@ for name in subject_names:
     # just load existing data structure
     # subject = op.load_subject_dir(subname= name, subcode= subject_code)
     preprocess = PreProcessing(op,[subject])
+
+    ### CREATE FIRST LEVEL
+    first_level = createFirstLevel()
+    # set the tr
+    trtimeinsec = 2.5
+    first_level.runglmperun(subject,trtimeinsec)
+    #### END CREATE FIRST LEVEL GLM PER SUB
+
     # Brain Extraction and bias field estimation
     print "Started Analysis:{}".format(subject)
     brain_image = preprocess.extract_brain(subject,automatic_approval=True)
     anat_image = preprocess.estimate_bias_field(subject, brain_image)
-
     # Motion
     preprocess.motion_correction(subject)
 
