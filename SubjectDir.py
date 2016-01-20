@@ -1,4 +1,4 @@
-﻿﻿#!/usr/bin/python
+﻿#!/usr/bin/python
 
 import os
 from glob import glob

@@ -243,16 +243,19 @@ class OpenFMRIData(object):
             os.remove(f)
         if 'Duration' not in df:
             df['Duration'] = pd.Series(duration*np.ones(len(df.index), dtype=np.float))
+
         conds = df.loc[~df['Stimulus'].duplicated()]['Stimulus']
         cond_idx = 1
         for cond in conds:
             cond_df = df[df.Stimulus == cond][['Onset', 'Duration', 'Response']]
-            for row in range(0,cond_df.__len__()-1):
+            for row in cond_df.index:
                 rundirnum = int(run_dir[11:14])
                 file_name = cond + str(row) + '.'  'run%.3d'%(rundirnum) + '.txt'
                 output_file = os.path.join(output_dir,file_name)
-                cond_df.iloc([[row]]).to_csv(output_file, sep='\t', header=False, index=False)
+                cond_write = cond_df.loc[row,:]
+                cond_write.to_csv(output_file, sep='\t', header=False, index=False)
                 cond_idx = cond_idx+1
+                print file_name + "\n"
 
     def collapse_conds(self, behavdata_file, conds2collapse):
         pass
