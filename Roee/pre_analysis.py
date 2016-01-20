@@ -24,6 +24,7 @@ for name in subject_names:
 
 #TODO: agree on a standard to include open behvadata.txt files in raw directory structure
 # copy over the behavdata.txt files to correct place in open-fmri data struc created above:
+# you need to do this with a mat script of by hand for each run for eahc subject
 # ~/sub001/behav/tak00X_run00X/behavdata.txt
 
 for name in subject_names:

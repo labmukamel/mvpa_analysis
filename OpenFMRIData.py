@@ -253,7 +253,11 @@ class OpenFMRIData(object):
                 file_name = cond + str(row) + '.'  'run%.3d'%(rundirnum) + '.txt'
                 output_file = os.path.join(output_dir,file_name)
                 cond_write = cond_df.loc[row,:]
-                cond_write.to_csv(output_file, sep='\t', header=False, index=False)
+                fid = open(output_file,"w")
+                fid.write("%.1f\t%.1f\t%.1f\t" % (cond_write.Onset ,cond_write.Duration ,cond_write.Response))
+                fid.close()
+                # write to_csv doesn't work well since it write data transposed, had to do ugly solution above
+                # cond_write.to_csv(output_file, sep='\t', header=False, index=False)
                 cond_idx = cond_idx+1
                 print file_name + "\n"
 
