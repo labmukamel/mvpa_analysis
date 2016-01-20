@@ -26,6 +26,7 @@ for name in subject_names:
     analyzer = PreProcessing(op,[subject_dir])
     brain_image = analyzer.extract_brain(subject_dir)
     analyzer.estimate_bias_field(subject_dir, brain_image, overwrite=True)
+    analyzer.applymask_bold(subject_dir)
     analyzer.motion_correction(subject_dir)
     analyzer.anatomical_registration(subject_dir)
     analyzer.functional_registration(subject_dir)

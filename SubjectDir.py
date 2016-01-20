@@ -239,7 +239,7 @@ class SubjectDir(object):
                 if not evcondfils:
                     continue
                 else:
-                    evsperrun = [model,run,evcondfils]
+                    evsperrun = [model, run, evcondfils]
                     evfiles.append(evsperrun)
 
         return evfiles
